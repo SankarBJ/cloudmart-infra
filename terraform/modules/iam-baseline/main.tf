@@ -12,7 +12,7 @@ resource "aws_iam_group" "admins" {
 
 resource "aws_iam_policy" "readonly" {
 
-  name        = "${var.environment}-readonly-policy"
+  name = "${var.environment}-readonly-policy"
 
   description = "Read only policy for CloudMart"
 
@@ -84,7 +84,7 @@ resource "aws_iam_role" "ec2_role" {
 
 resource "aws_iam_role_policy_attachment" "readonly_attach" {
 
-  role       = aws_iam_role.ec2_role.name
+  role = aws_iam_role.ec2_role.name
 
   policy_arn = aws_iam_policy.readonly.arn
 
