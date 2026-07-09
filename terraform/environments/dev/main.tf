@@ -6,6 +6,7 @@ module "bootstrap" {
 
   environment = "dev"
 }
+
 module "networking" {
   source = "../../modules/networking"
 
@@ -20,4 +21,9 @@ module "networking" {
 
   availability_zone_1 = "ap-south-1a"
   availability_zone_2 = "ap-south-1b"
+}
+module "iam_baseline" {
+  source = "../../modules/iam-baseline"
+
+  environment = "dev"
 }
