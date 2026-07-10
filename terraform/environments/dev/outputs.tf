@@ -1,19 +1,15 @@
-output "vpc_id" {
-  value = module.networking.vpc_id
+output "instance_id" {
+  value = module.compute.instance_id
 }
 
-output "public_subnet_1_id" {
-  value = module.networking.public_subnet_1_id
+output "public_ip" {
+  value = module.compute.public_ip
 }
 
-output "public_subnet_2_id" {
-  value = module.networking.public_subnet_2_id
+output "private_ip" {
+  value = module.compute.private_ip
 }
 
-output "iam_role_name" {
-  value = module.iam_baseline.iam_role_name
-}
-
-output "instance_profile_name" {
-  value = module.iam_baseline.instance_profile_name
+output "security_group_id" {
+  value = module.compute.security_group_id
 }
