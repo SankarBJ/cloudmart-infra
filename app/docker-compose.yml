@@ -1,0 +1,42 @@
+services:
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: cloudmart-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./backend
+    container_name: cloudmart-backend
+    environment:
+      DB_HOST: db
+      DB_NAME: cloudmart
+      DB_USER: cloudmart
+      DB_PASSWORD: cloudmart123
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    container_name: cloudmart-db
+    environment:
+      POSTGRES_DB: cloudmart
+      POSTGRES_USER: cloudmart
+      POSTGRES_PASSWORD: cloudmart123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cloudmart -d cloudmart"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_data:

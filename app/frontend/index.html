@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CloudMart</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f5f7fa;
+            color: #222;
+        }
+
+        header {
+            background: #111827;
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .status {
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+
+        .products {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .product {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        }
+
+        .product h3 {
+            margin-top: 0;
+        }
+
+        .price {
+            font-size: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>☁ CloudMart</h1>
+    <p>Cloud-Native E-Commerce Platform</p>
+</header>
+
+<div class="container">
+
+    <div class="status">
+        <strong>Backend Status:</strong>
+        <span id="status">Checking...</span>
+    </div>
+
+    <h2>Products</h2>
+
+    <div id="products" class="products"></div>
+
+</div>
+
+<script>
+async function checkHealth() {
+    try {
+        const response = await fetch("/api/health");
+        const data = await response.json();
+
+        document.getElementById("status").textContent =
+            data.status === "healthy" ? "Healthy ✅" : "Unavailable ❌";
+
+    } catch (error) {
+        document.getElementById("status").textContent = "Unavailable ❌";
+    }
+}
+
+async function loadProducts() {
+    try {
+        const response = await fetch("/api/products");
+        const products = await response.json();
+
+        const container = document.getElementById("products");
+
+        container.innerHTML = products.map(product => `
+            <div class="product">
+                <h3>${product.name}</h3>
+                <p>${product.description}</p>
+                <p class="price">₹${product.price.toLocaleString("en-IN")}</p>
+            </div>
+        `).join("");
+
+    } catch (error) {
+        document.getElementById("products").innerHTML =
+            "<p>Unable to load products.</p>";
+    }
+}
+
+checkHealth();
+loadProducts();
+</script>
+
+</body>
+</html>
