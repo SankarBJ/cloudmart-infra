@@ -7,7 +7,7 @@ app = Flask(__name__)
 DB_HOST = os.getenv("DB_HOST", "db")
 DB_NAME = os.getenv("DB_NAME", "cloudmart")
 DB_USER = os.getenv("DB_USER", "cloudmart")
-DB_PASSWORD = os.getenv("DB_PASSWORD", "cloudmart123")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
 
 
 def get_db_connection():
