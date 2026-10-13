@@ -1,0 +1,20 @@
+# Existing live repositories (do not apply until imported):
+#   cloudmart-frontend
+#   cloudmart-backend
+#
+# After approval:
+# 1. Rename this file to ecr.tf (or copy the module block into main.tf)
+# 2. terraform init
+# 3. terraform import 'module.ecr.aws_ecr_repository.this["cloudmart-frontend"]' cloudmart-frontend
+# 4. terraform import 'module.ecr.aws_ecr_repository.this["cloudmart-backend"]' cloudmart-backend
+# 5. terraform plan  (expect no create/destroy)
+#
+# module "ecr" {
+#   source = "../../modules/ecr"
+#
+#   environment = "dev"
+#   repository_names = [
+#     "cloudmart-frontend",
+#     "cloudmart-backend"
+#   ]
+# }

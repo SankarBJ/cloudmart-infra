@@ -31,3 +31,22 @@ module "compute" {
   instance_type = "t2.micro"
   ami_id        = "ami-0f58b397bc5c1f2e8"
 }
+module "eks" {
+  source = "../../modules/eks"
+
+  cluster_name       = "cloudmart-dev-eks"
+  kubernetes_version = "1.33"
+
+  vpc_id = module.networking.vpc_id
+
+  private_subnet_ids = [
+    module.networking.private_subnet_1_id,
+    module.networking.private_subnet_2_id
+  ]
+
+  node_instance_types = ["t3.medium"]
+
+  node_desired_size = 1
+  node_min_size     = 1
+  node_max_size     = 2
+}

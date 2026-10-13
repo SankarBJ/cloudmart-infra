@@ -3,13 +3,44 @@
 **/.terraform/**
 *.tfstate
 *.tfstate.*
+crash.*.tfstate
 .terraform.lock.hcl
+*.tfplan
+tfplan
+/terraform/environments/*/tfplan
+*.tfvars
+!*.tfvars.example
+override.tf
+*_override.tf
+
+# Secrets and local env
+.env
+.env.*
+!.env.example
+kubeconfig
+*.kubeconfig
+**/secrets.yaml
+**/*secret.yaml
+!**/*.example.yaml
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+
+# Backups / OS
+*.backup
+*.bak
+Thumbs.db
+.DS_Store
 
 # VS Code
 .vscode/
 
-# Logs
-*.log
-*.tfplan
-tfplan
-/terraform/environments/*/tfplan
+# Nested Python environments and generated files
+**/.venv/
+**/venv/
+**/__pycache__/
+*.py[cod]
+.pytest_cache/

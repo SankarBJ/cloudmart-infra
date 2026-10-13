@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: recovery-test
+  namespace: cloudmart-lab
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: recovery-test
+  template:
+    metadata:
+      labels:
+        app: recovery-test
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:alpine
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 2
+            periodSeconds: 2
