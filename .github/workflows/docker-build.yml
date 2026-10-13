@@ -1,0 +1,25 @@
+name: CloudMart Docker Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-images:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build backend image
+        run: docker build -t cloudmart-backend:ci app/backend
+
+      - name: Build frontend image
+        run: docker build -t cloudmart-frontend:ci app/frontend
