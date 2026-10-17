@@ -1,4 +1,4 @@
-# CloudMart — Cloud-Native Amazon-Style E-Commerce Platform
+# CloudMart — Cloud-Native E-Commerce Platform
 
 A production-grade, secure, multi-tier cloud e-commerce and logistics platform built with Python Flask, PostgreSQL, Nginx, Docker, Kubernetes (AWS EKS), and Terraform.
 
