@@ -1,2 +1,6 @@
-Flask==3.1.2
-psycopg2-binary==2.9.10
+Flask==3.0.0
+psycopg2-binary==2.9.9
+flask-cors==4.0.0
+bcrypt==4.1.2
+PyJWT==2.8.0
+boto3==1.34.40
