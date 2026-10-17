@@ -1,0 +1,74 @@
+{
+  "experiment": "CloudMart health hysteresis simulation",
+  "data_type": "SYNTHETIC_NOT_LIVE_MEASUREMENTS",
+  "sample_interval_seconds": 5,
+  "trigger_time_seconds": 15,
+  "recovery_time_seconds": 30,
+  "detection_delay_seconds": 10,
+  "recovery_confirmation_delay_seconds": 5,
+  "results": [
+    {
+      "simulated_time_seconds": 0,
+      "scenario": "baseline",
+      "score": 100,
+      "active": false,
+      "event": "NO_CHANGE",
+      "bad_samples": 0,
+      "good_samples": 0
+    },
+    {
+      "simulated_time_seconds": 5,
+      "scenario": "fault",
+      "score": 45,
+      "active": false,
+      "event": "NO_CHANGE",
+      "bad_samples": 1,
+      "good_samples": 0
+    },
+    {
+      "simulated_time_seconds": 10,
+      "scenario": "fault",
+      "score": 45,
+      "active": false,
+      "event": "NO_CHANGE",
+      "bad_samples": 2,
+      "good_samples": 0
+    },
+    {
+      "simulated_time_seconds": 15,
+      "scenario": "fault",
+      "score": 45,
+      "active": true,
+      "event": "TRIGGER",
+      "bad_samples": 0,
+      "good_samples": 0
+    },
+    {
+      "simulated_time_seconds": 20,
+      "scenario": "continued_fault",
+      "score": 50,
+      "active": true,
+      "event": "NO_CHANGE",
+      "bad_samples": 0,
+      "good_samples": 0
+    },
+    {
+      "simulated_time_seconds": 25,
+      "scenario": "recovery",
+      "score": 80,
+      "active": true,
+      "event": "NO_CHANGE",
+      "bad_samples": 0,
+      "good_samples": 1
+    },
+    {
+      "simulated_time_seconds": 30,
+      "scenario": "recovery",
+      "score": 85,
+      "active": false,
+      "event": "RECOVER",
+      "bad_samples": 0,
+      "good_samples": 0
+    }
+  ]
+}
