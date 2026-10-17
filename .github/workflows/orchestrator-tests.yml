@@ -1,3 +1,4 @@
+
 name: CloudMart CI Tests
 
 on:
@@ -24,10 +25,15 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-          cache: pip
 
-      - name: Install test dependency
+      - name: Install test dependencies
         run: python -m pip install pytest
+
+      - name: Verify test files
+        run: |
+          pwd
+          ls -la
+          find orchestrator -maxdepth 3 -type f
 
       - name: Run Health Orchestrator tests
         run: python -m pytest -v orchestrator/tests
