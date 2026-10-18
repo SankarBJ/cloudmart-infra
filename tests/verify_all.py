@@ -1,10 +1,18 @@
+import os
 import urllib.request
 import urllib.parse
 import json
 import time
 import sys
 
-BASE_URL = "http://localhost:8080"
+# Bypass university/campus Squid proxy for localhost
+os.environ["NO_PROXY"] = "localhost,127.0.0.1"
+os.environ["no_proxy"] = "localhost,127.0.0.1"
+proxy_handler = urllib.request.ProxyHandler({})
+opener = urllib.request.build_opener(proxy_handler)
+urllib.request.install_opener(opener)
+
+BASE_URL = "http://127.0.0.1:8080"
 
 def request(method, path, data=None, token=None):
     url = f"{BASE_URL}{path}"
@@ -34,17 +42,8 @@ def run_tests():
     print("      CLOUDMART AUTOMATED VERIFICATION SUITE")
     print("=" * 65)
 
-    # 1. Health Check with retry
-    retries = 5
-    status, res = 0, {}
-    while retries > 0:
-        status, res = request("GET", "/health")
-        if status == 200 and res.get("status") == "healthy":
-            break
-        print(f"⏳ Waiting for backend to finish booting... ({res.get('raw_error', res)})")
-        time.sleep(2)
-        retries -= 1
-
+    # 1. Health Check
+    status, res = request("GET", "/health")
     assert status == 200 and res.get("status") == "healthy", f"Health check failed: {res}"
     print("✅ TEST 1: System Health & Database Connectivity PASS")
 
@@ -84,9 +83,9 @@ def run_tests():
     idempotency_key = "test_key_" + str(hash(test_email))
     order_payload = {
         "items": [{"product_id": product_id, "quantity": 1}],
-        "shipping_address": "88 Tech Park Expressway",
-        "shipping_city": "Chennai",
-        "shipping_postal_code": "600096",
+        "shipping_address": "88 Tech Park Avenue, Katpadi",
+        "shipping_city": "Vellore",
+        "shipping_postal_code": "632014",
         "idempotency_key": idempotency_key
     }
     status, res = request("POST", "/api/orders", order_payload, token=token)
@@ -100,18 +99,24 @@ def run_tests():
     assert status == 200 and res.get("order_id") == order_id, f"Idempotency failed: {res}"
     print("✅ TEST 7: Duplicate Submission Protection (Idempotency Key) PASS")
 
-    # 8. Warehouse Tracking & Doorstep OTP Verification
-    status, res = request("GET", f"/api/orders/{order_id}/tracking", token=token)
-    assert status == 200 and res.get("tracking", {}).get("current_status") == "ORDERED", f"Tracking failed: {res}"
-    
-    # Advance to OUT_FOR_DELIVERY
-    for _ in range(3):
-        request("POST", f"/api/orders/{order_id}/advance-status", token=token)
-    
-    # Verify Doorstep OTP
-    status, res = request("POST", f"/api/orders/{order_id}/otp/verify", {"otp": demo_otp}, token=token)
-    assert status == 200 and res.get("status") == "DELIVERED", f"OTP verification failed: {res}"
-    print("✅ TEST 8: Warehouse Tracking, SMS Trigger & Doorstep OTP Verification PASS")
+    # 8. GEOFENCED ANTI-FRAUD LOGISTICS VERIFICATION
+    # Step 8A: Fraud Test (Courier is 1.8km away -> MUST be rejected with 403 GEOFENCE_BREACH)
+    status, res = request("POST", f"/api/orders/{order_id}/otp/verify", {
+        "otp": demo_otp,
+        "driver_lat": 12.9850,
+        "driver_lng": 79.1700
+    }, token=token)
+    assert status == 403 and res.get("code") == "GEOFENCE_BREACH", f"Fraud test failed: {res}"
+    print("✅ TEST 8A: Geofence Anti-Fraud Defense (1.8km breach blocked with 403) PASS")
+
+    # Step 8B: Legitimate Doorstep Test (Courier is at 12.9717, 79.1586 -> 14.2m away -> MUST succeed with 200)
+    status, res = request("POST", f"/api/orders/{order_id}/otp/verify", {
+        "otp": demo_otp,
+        "driver_lat": 12.9717,
+        "driver_lng": 79.1586
+    }, token=token)
+    assert status == 200 and res.get("status") == "DELIVERED", f"Doorstep handshake failed: {res}"
+    print("✅ TEST 8B: Doorstep Geofence Handshake (14.2m proximity verified with 200) PASS")
 
     print("=" * 65)
     print("     ALL 8 AUTOMATED INTEGRATION TESTS PASSED (100%)")

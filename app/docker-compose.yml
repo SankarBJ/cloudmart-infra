@@ -34,6 +34,8 @@ services:
   frontend:
     build: ./frontend
     container_name: cloudmart-frontend
+    volumes:
+      - ./frontend:/usr/share/nginx/html
     ports:
       - "8080:80"
     depends_on:

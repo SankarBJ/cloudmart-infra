@@ -18,11 +18,14 @@ function updateCartCount() {
     }
 }
 
-function renderAmazonHeader(activePage = '') {
+function renderAmazonHeaderInto(containerId, activePage = '') {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
     const user = getCurrentUser();
     const userGreeting = user ? `Hello, ${user.name.split(' ')[0]}` : 'Hello, Sign In';
 
-    const headerHTML = `
+    container.innerHTML = `
     <header class="amz-header">
         <div class="amz-nav-top">
             <a href="/" class="amz-logo">CloudMart<span>.in</span></a>
@@ -33,15 +36,15 @@ function renderAmazonHeader(activePage = '') {
             </div>
 
             <div class="amz-search-bar">
-                <input type="text" id="globalSearchInput" placeholder="Search CloudMart (e.g. Echo, Kindle, Backpack)..." 
+                <input type="text" id="globalSearchInput" placeholder="Search CloudMart products (e.g. Echo, Kindle, Backpack)..." 
                        onkeyup="if(event.key==='Enter') executeSearch()">
                 <button onclick="executeSearch()">🔍</button>
             </div>
 
             <div class="amz-nav-actions">
-                <a href="${user ? '#' : '/login'}" class="amz-nav-link" id="navAccountBtn" onclick="${user ? 'handleLogout()' : ''}">
+                <a href="#" class="amz-nav-link" onclick="handleLogout()">
                     <span style="font-size:11px;">${userGreeting}</span>
-                    <strong style="font-size:13px;">${user ? 'Account (Sign Out)' : 'Account & Lists'}</strong>
+                    <strong style="font-size:13px;">Sign Out</strong>
                 </a>
 
                 <a href="/orders" class="amz-nav-link">
@@ -62,13 +65,12 @@ function renderAmazonHeader(activePage = '') {
             <a href="/?cat=Electronics">Electronics</a>
             <a href="/?cat=Home%20%26%20Kitchen">Home & Kitchen</a>
             <a href="/?cat=Books">Books</a>
-            <a href="/orders">Past Orders</a>
-            <a href="/tracking">Logistics Handshake Demo</a>
+            <a href="/orders">Order History</a>
+            <a href="/tracking">Logistics Handshake</a>
         </div>
     </header>
     `;
 
-    document.body.insertAdjacentHTML('afterbegin', headerHTML);
     updateCartCount();
 }
 
@@ -78,9 +80,9 @@ function executeSearch() {
 }
 
 function handleLogout() {
-    if (confirm("Do you want to log out of your CloudMart account?")) {
+    if (confirm("Sign out of CloudMart?")) {
         localStorage.removeItem('cloudmart_jwt');
         localStorage.removeItem('cloudmart_user');
-        location.href = '/login';
+        location.href = '/';
     }
 }

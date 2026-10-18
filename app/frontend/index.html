@@ -2,40 +2,380 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>CloudMart | Amazon-Style Storefront</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CloudMart | Amazon-Style Marketplace</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/style.css">
     <script src="/shared.js"></script>
     <style>
-        .main-layout { display: flex; max-width: 1400px; margin: 15px auto; padding: 0 15px; gap: 20px; }
+        .auth-gateway-overlay {
+            min-height: 100vh;
+            background: #f7f7f7;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px 15px;
+        }
+        .gateway-card {
+            width: 100%;
+            max-width: 420px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+        }
+        .gateway-logo { font-size: 34px; font-weight: 800; color: #111; text-decoration: none; margin-bottom: 20px; display: inline-block; }
+        .gateway-logo span { color: #febd69; }
+        .gateway-tabs { display: flex; border-bottom: 2px solid #eee; margin-bottom: 20px; }
+        .gateway-tab { flex: 1; text-align: center; padding: 10px; font-size: 14px; font-weight: 700; cursor: pointer; color: #666; border-bottom: 3px solid transparent; }
+        .gateway-tab.active { color: #111; border-bottom: 3px solid #e77600; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 4px; color: #111; }
+        .form-group input, .form-group select { width: 100%; padding: 9px; font-size: 14px; border: 1px solid #a6a6a6; border-radius: 4px; outline: none; }
+        .btn-gateway-submit { width: 100%; background: #ffd814; border: 1px solid #a88734; border-radius: 8px; padding: 11px; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 10px; }
+        .btn-gateway-submit:hover { background: #f7ca00; }
+        .alert-error { background: #fff0f0; border: 1px solid #ffcccc; color: #cc0000; padding: 9px 12px; border-radius: 4px; font-size: 13px; margin-bottom: 15px; display: none; }
+        .otp-verification-box { background: #f0f7ff; border: 1px solid #cce5ff; padding: 15px; border-radius: 6px; margin-top: 12px; display: none; }
+
+        #customerStorefrontApp, #sellerCentralApp { display: none; }
+        .layout-container { max-width: 1400px; margin: 15px auto; padding: 0 15px; }
+        .store-flex { display: flex; gap: 20px; }
         .sidebar { width: 230px; background: #fff; padding: 16px; border-radius: 8px; height: fit-content; border: 1px solid #ddd; }
         .product-grid { flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
-        .product-card { background: #fff; border-radius: 8px; padding: 16px; border: 1px solid #ddd; display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.15s; }
-        .product-card:hover { transform: translateY(-3px); box-shadow: 0 4px 10px rgba(0,0,0,0.12); }
+        .product-card { background: #fff; border-radius: 8px; padding: 16px; border: 1px solid #ddd; display: flex; flex-direction: column; justify-content: space-between; }
         .product-card img { width: 100%; height: 180px; object-fit: contain; cursor: pointer; }
+
+        .seller-header { background: #232f3e; color: #fff; padding: 18px 25px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 25px; }
+        .kpi-card { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 18px; text-align: center; }
+        .kpi-num { font-size: 26px; font-weight: 800; color: #007185; margin-top: 5px; }
+        .vendor-box { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 22px; margin-bottom: 25px; }
+        .inventory-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+        .inventory-table th, .inventory-table td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
+        .inventory-table th { background: #f8f9fa; font-weight: 700; }
+        .btn-delete-item { background: #dc3545; color: #fff; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; }
     </style>
 </head>
 <body>
-    <script>renderAmazonHeader('home');</script>
 
-    <div class="main-layout">
-        <aside class="sidebar">
-            <h3 style="font-size:14px; font-weight:700; border-bottom:1px solid #eee; padding-bottom:6px;">Department</h3>
-            <div id="deptList" style="margin-top:10px; font-size:13px; line-height:2;"></div>
-        </aside>
+    <!-- GATED AUTH GATEWAY (ONLY SHOWN WHEN LOGGED OUT — ZERO HEADERS) -->
+    <div id="authGateway" class="auth-gateway-overlay">
+        <div style="text-align:center;">
+            <a href="/" class="gateway-logo">CloudMart<span>.in</span></a>
+        </div>
 
-        <main style="flex:1;">
-            <div id="productsGrid" class="product-grid">Loading CloudMart products...</div>
-        </main>
+        <div class="gateway-card">
+            <div class="gateway-tabs">
+                <div id="tabSignIn" class="gateway-tab active" onclick="switchGatewayTab('signin')">Sign In</div>
+                <div id="tabSignUp" class="gateway-tab" onclick="switchGatewayTab('signup')">Create Account</div>
+            </div>
+
+            <div id="gatewayAlert" class="alert-error"></div>
+
+            <!-- TAB 1: SIGN IN -->
+            <div id="sectionSignIn">
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="loginEmail" value="sankar@example.com" placeholder="e.g. sankar@example.com">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPassword" value="Password123!" placeholder="At least 6 characters">
+                </div>
+                <button class="btn-gateway-submit" onclick="executeGatewayLogin()">Sign In & Access Platform</button>
+                <p style="font-size:12px; color:#555; margin-top:16px; text-align:center;">
+                    New customer or vendor? <a href="#" onclick="switchGatewayTab('signup')" style="color:#007185; font-weight:700; text-decoration:none;">Create account</a>
+                </p>
+            </div>
+
+            <!-- TAB 2: CREATE ACCOUNT -->
+            <div id="sectionSignUp" style="display:none;">
+                <div id="signupFormFields">
+                    <div class="form-group">
+                        <label>Account Role (Ecosystem Persona)</label>
+                        <select id="regRole" style="font-weight:700; background:#f0f8ff;">
+                            <option value="customer">🛒 Customer (Shopper / Buyer)</option>
+                            <option value="seller">🏪 Seller / Vendor (Merchant Central)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Your Full Name / Business Name</label>
+                        <input type="text" id="regName" placeholder="Full name">
+                    </div>
+                    <div class="form-group">
+                        <label>Mobile Number (For Delivery SMS & Geofenced OTP)</label>
+                        <input type="text" id="regPhone" value="+919876543210">
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="regEmail" placeholder="Email address">
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="regPassword" placeholder="At least 6 characters">
+                    </div>
+                    <div class="form-group">
+                        <label>Re-enter Password</label>
+                        <input type="password" id="regConfirmPassword" placeholder="Re-type password">
+                    </div>
+                    <button class="btn-gateway-submit" onclick="requestSignupOtp()">Verify Email & Mobile OTP</button>
+                </div>
+
+                <div id="signupOtpBox" class="otp-verification-box">
+                    <h4 style="font-size:13px; font-weight:700; color:#007185;">Security Verification Code</h4>
+                    <p style="font-size:11px; color:#555; margin: 3px 0 8px;">Enter the 6-digit code to activate your account.</p>
+                    <div style="background:#fff3cd; border:1px solid #ffeeba; color:#856404; padding:6px; font-size:12px; font-weight:bold; margin-bottom:8px;">
+                        🔑 Verification OTP: <span id="displayRegOtp" style="font-size:15px; letter-spacing:2px; font-weight:900;">739201</span>
+                    </div>
+                    <input type="text" id="inputRegOtp" maxlength="6" placeholder="Enter 6-digit OTP" style="width:100%; padding:8px; text-align:center; font-size:15px; font-weight:bold;">
+                    <button class="btn-gateway-submit" style="margin-top:8px;" onclick="verifyAndRegisterUser()">Activate Account & Enter Platform</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PERSONA 1: CUSTOMER STOREFRONT (HEADER INJECTED INTO #customerHeaderContainer ONCE) -->
+    <div id="customerStorefrontApp">
+        <div id="customerHeaderContainer"></div>
+        <div class="layout-container">
+            <div class="store-flex">
+                <aside class="sidebar">
+                    <h3 style="font-size:14px; font-weight:700; border-bottom:1px solid #eee; padding-bottom:6px;">Department</h3>
+                    <div id="deptList" style="margin-top:10px; font-size:13px; line-height:2;"></div>
+                </aside>
+                <main style="flex:1;">
+                    <div style="background:linear-gradient(135deg, #232f3e 0%, #131921 100%); color:#fff; padding:20px; border-radius:8px; margin-bottom:15px;">
+                        <h2 style="font-size:22px; font-weight:800;">CloudMart Festive Store</h2>
+                        <p style="font-size:13px; color:#ddd; margin-top:3px;">Protected by Dual-Factor Geofenced Delivery Logistics Handshake.</p>
+                    </div>
+                    <div id="productsGrid" class="product-grid">Loading products...</div>
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <!-- PERSONA 2: SELLER CENTRAL (HEADER INJECTED INTO #sellerHeaderContainer ONCE) -->
+    <div id="sellerCentralApp">
+        <div id="sellerHeaderContainer"></div>
+        <div class="layout-container">
+            <div class="seller-header">
+                <div>
+                    <h1 style="font-size:22px; font-weight:800;">Amazon Seller Central — Merchant Portal</h1>
+                    <p style="font-size:13px; color:#ddd; margin-top:3px;">Logged in as Merchant / Vendor. Manage listings, stock, and pricing.</p>
+                </div>
+                <button class="btn-checkout" style="width:auto; padding:8px 15px; font-size:13px;" onclick="switchRoleTo('customer')">Preview as Shopper</button>
+            </div>
+
+            <div class="kpi-row">
+                <div class="kpi-card"><div>Active Listings</div><div id="kpiListings" class="kpi-num">0</div></div>
+                <div class="kpi-card"><div>Total Units in Stock</div><div id="kpiStock" class="kpi-num">0</div></div>
+                <div class="kpi-card"><div>Catalog Value</div><div id="kpiValue" class="kpi-num">$0</div></div>
+                <div class="kpi-card"><div>Handshake Protected</div><div class="kpi-num" style="color:#007600;">Active</div></div>
+            </div>
+
+            <div class="vendor-box">
+                <h2 style="font-size:17px; font-weight:700; margin-bottom:12px; border-bottom:1px solid #eee; padding-bottom:8px;">Add New Item to Catalog</h2>
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px;">
+                    <div>
+                        <label style="font-size:12px; font-weight:600;">Product Title</label>
+                        <input type="text" id="addProdTitle" placeholder="e.g. Sony WH-1000XM5 Headphones" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;">
+                    </div>
+                    <div>
+                        <label style="font-size:12px; font-weight:600;">Category</label>
+                        <select id="addProdCat" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;">
+                            <option value="Electronics">Electronics</option>
+                            <option value="Home & Kitchen">Home & Kitchen</option>
+                            <option value="Office">Office</option>
+                            <option value="Fashion">Fashion</option>
+                            <option value="Books">Books</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:12px; font-weight:600;">Price (USD)</label>
+                        <input type="number" step="0.01" id="addProdPrice" placeholder="e.g. 199.99" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;">
+                    </div>
+                    <div>
+                        <label style="font-size:12px; font-weight:600;">Initial Stock</label>
+                        <input type="number" id="addProdStock" placeholder="e.g. 25" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;">
+                    </div>
+                </div>
+                <div style="margin-top:10px;">
+                    <label style="font-size:12px; font-weight:600;">Image URL</label>
+                    <input type="text" id="addProdImg" placeholder="https://images.unsplash.com/..." value="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;">
+                </div>
+                <button class="btn-checkout" style="margin-top:12px; width:auto; padding:10px 20px;" onclick="executeAddProduct()">Publish to CloudMart Storefront</button>
+            </div>
+
+            <div class="vendor-box">
+                <h2 style="font-size:17px; font-weight:700; margin-bottom:10px;">Merchant Inventory & Item Removal</h2>
+                <table class="inventory-table">
+                    <thead>
+                        <tr>
+                            <th>Item Name</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Stock Units</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sellerInventoryBody"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const searchQ = urlParams.get('search') || '';
-        const catQ = urlParams.get('cat') || 'All';
+        let currentRegOtp = '739201';
 
-        async function initStorefront() {
-            // Load Categories
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = getAuthToken();
+            const user = getCurrentUser();
+            if (token && user) {
+                if (user.role === 'seller') unlockSellerCentral();
+                else unlockCustomerStore();
+            } else {
+                lockGateway();
+            }
+        });
+
+        function lockGateway() {
+            document.getElementById('authGateway').style.display = 'flex';
+            document.getElementById('customerStorefrontApp').style.display = 'none';
+            document.getElementById('sellerCentralApp').style.display = 'none';
+        }
+
+        function unlockCustomerStore() {
+            document.getElementById('authGateway').style.display = 'none';
+            document.getElementById('customerStorefrontApp').style.display = 'block';
+            document.getElementById('sellerCentralApp').style.display = 'none';
+            renderAmazonHeaderInto('customerHeaderContainer', 'home');
+            loadCatalog();
+        }
+
+        function unlockSellerCentral() {
+            document.getElementById('authGateway').style.display = 'none';
+            document.getElementById('customerStorefrontApp').style.display = 'none';
+            document.getElementById('sellerCentralApp').style.display = 'block';
+            renderAmazonHeaderInto('sellerHeaderContainer', 'seller');
+            loadSellerInventory();
+        }
+
+        function switchRoleTo(role) {
+            let user = getCurrentUser();
+            user.role = role;
+            localStorage.setItem('cloudmart_user', JSON.stringify(user));
+            location.reload();
+        }
+
+        function switchGatewayTab(tab) {
+            document.getElementById('gatewayAlert').style.display = 'none';
+            document.getElementById('tabSignIn').classList.toggle('active', tab === 'signin');
+            document.getElementById('tabSignUp').classList.toggle('active', tab === 'signup');
+            document.getElementById('sectionSignIn').style.display = tab === 'signin' ? 'block' : 'none';
+            document.getElementById('sectionSignUp').style.display = tab === 'signup' ? 'block' : 'none';
+        }
+
+        async function executeGatewayLogin() {
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const alertBox = document.getElementById('gatewayAlert');
+            alertBox.style.display = 'none';
+
+            try {
+                const res = await fetch(`${API}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    alertBox.innerText = data.error || "Login failed";
+                    alertBox.style.display = 'block';
+                    return;
+                }
+                localStorage.setItem('cloudmart_jwt', data.token);
+                localStorage.setItem('cloudmart_user', JSON.stringify(data.user));
+                if (data.user.role === 'seller') unlockSellerCentral();
+                else unlockCustomerStore();
+            } catch(e) {
+                alertBox.innerText = "Network error connecting to backend service.";
+                alertBox.style.display = 'block';
+            }
+        }
+
+        function requestSignupOtp() {
+            const name = document.getElementById('regName').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const pw = document.getElementById('regPassword').value;
+            const confirmPw = document.getElementById('regConfirmPassword').value;
+            const alertBox = document.getElementById('gatewayAlert');
+            alertBox.style.display = 'none';
+
+            if (!name || !email || !pw || !confirmPw) {
+                alertBox.innerText = "Please fill in all registration fields.";
+                alertBox.style.display = 'block';
+                return;
+            }
+            if (pw.length < 6) {
+                alertBox.innerText = "Password must be at least 6 characters.";
+                alertBox.style.display = 'block';
+                return;
+            }
+            if (pw !== confirmPw) {
+                alertBox.innerText = "Passwords do not match. Please re-enter.";
+                alertBox.style.display = 'block';
+                return;
+            }
+
+            currentRegOtp = Math.floor(100000 + Math.random() * 900000).toString();
+            document.getElementById('displayRegOtp').innerText = currentRegOtp;
+            document.getElementById('signupFormFields').style.display = 'none';
+            document.getElementById('signupOtpBox').style.display = 'block';
+        }
+
+        async function verifyAndRegisterUser() {
+            const entered = document.getElementById('inputRegOtp').value.trim();
+            const alertBox = document.getElementById('gatewayAlert');
+            if (entered !== currentRegOtp) {
+                alertBox.innerText = "Invalid verification OTP code.";
+                alertBox.style.display = 'block';
+                return;
+            }
+
+            const payload = {
+                role: document.getElementById('regRole').value,
+                name: document.getElementById('regName').value.trim(),
+                email: document.getElementById('regEmail').value.trim(),
+                phone_number: document.getElementById('regPhone').value.trim(),
+                password: document.getElementById('regPassword').value
+            };
+
+            const res = await fetch(`${API}/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                alertBox.innerText = data.error || "Registration failed";
+                alertBox.style.display = 'block';
+                return;
+            }
+
+            localStorage.setItem('cloudmart_jwt', data.token);
+            localStorage.setItem('cloudmart_user', JSON.stringify(data.user));
+            alert("🎉 CloudMart account verified and created!");
+            if (data.user.role === 'seller') unlockSellerCentral();
+            else unlockCustomerStore();
+        }
+
+        async function loadCatalog() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const searchQ = urlParams.get('search') || '';
+            const catQ = urlParams.get('cat') || 'All';
+
             const cRes = await fetch(`${API}/categories`);
             const cData = await cRes.json();
             document.getElementById('deptList').innerHTML = `
@@ -45,7 +385,6 @@
                 `).join('')}
             `;
 
-            // Load Products
             let pUrl = `${API}/products?category=${encodeURIComponent(catQ)}`;
             if (searchQ) pUrl += `&search=${encodeURIComponent(searchQ)}`;
             const pRes = await fetch(pUrl);
@@ -53,9 +392,11 @@
 
             document.getElementById('productsGrid').innerHTML = pData.products.map(p => `
                 <div class="product-card">
-                    <img src="${p.image_url}" alt="${p.name}" onclick="location.href='/product?id=${p.id}'">
+                    <img src="${p.image_url}" alt="${p.name}" 
+                         onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600';"
+                         onclick="location.href='/product?id=${p.id}'">
                     <span style="font-size:11px; text-transform:uppercase; color:#777; font-weight:600;">${p.category}</span>
-                    <a href="/product?id=${p.id}" style="font-size:14px; font-weight:600; color:#007185; text-decoration:none; margin:6px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${p.name}</a>
+                    <a href="/product?id=${p.id}" style="font-size:14px; font-weight:600; color:#007185; text-decoration:none; margin:6px 0;">${p.name}</a>
                     <div style="color:#e67a00; font-size:12px; margin-bottom:4px;">★ ${p.rating} (${p.rating_count}) • <span style="color:#007185;">Prime</span></div>
                     <div style="font-size:20px; font-weight:800; color:#b12704; margin-bottom:10px;">$${p.price.toFixed(2)}</div>
                     <button class="btn-checkout" style="padding:8px; font-size:13px;" onclick="location.href='/product?id=${p.id}'">View Details & Buy</button>
@@ -63,7 +404,80 @@
             `).join('');
         }
 
-        initStorefront();
+        async function loadSellerInventory() {
+            const token = getAuthToken();
+            const res = await fetch(`${API}/products`);
+            const data = await res.json();
+            const products = data.products || [];
+
+            document.getElementById('kpiListings').innerText = products.length;
+            const totalStock = products.reduce((acc, p) => acc + p.stock, 0);
+            const totalVal = products.reduce((acc, p) => acc + (p.price * p.stock), 0);
+            document.getElementById('kpiStock').innerText = totalStock;
+            document.getElementById('kpiValue').innerText = `$${totalVal.toFixed(0)}`;
+
+            document.getElementById('sellerInventoryBody').innerHTML = products.map(p => `
+                <tr>
+                    <td><strong>${p.name}</strong></td>
+                    <td>${p.category}</td>
+                    <td>$${p.price.toFixed(2)}</td>
+                    <td>
+                        <input type="number" value="${p.stock}" style="width:65px; padding:4px;" onchange="updateStock(${p.id}, this.value)">
+                    </td>
+                    <td>
+                        <button class="btn-delete-item" onclick="deleteItem(${p.id})">Remove Item</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function executeAddProduct() {
+            const token = getAuthToken();
+            const payload = {
+                name: document.getElementById('addProdTitle').value.trim(),
+                category: document.getElementById('addProdCat').value,
+                price: parseFloat(document.getElementById('addProdPrice').value),
+                stock: parseInt(document.getElementById('addProdStock').value),
+                image_url: document.getElementById('addProdImg').value.trim()
+            };
+            if (!payload.name || isNaN(payload.price) || isNaN(payload.stock)) return alert("Fill in valid product title, price, and stock count.");
+
+            const res = await fetch(`${API}/seller/products`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (!res.ok) return alert(data.error || "Failed to add item");
+            alert("✅ Product published to CloudMart catalog!");
+            document.getElementById('addProdTitle').value = '';
+            document.getElementById('addProdPrice').value = '';
+            document.getElementById('addProdStock').value = '';
+            loadSellerInventory();
+        }
+
+        async function updateStock(id, newStock) {
+            const token = getAuthToken();
+            await fetch(`${API}/seller/products/${id}/stock`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ stock: parseInt(newStock) })
+            });
+            loadSellerInventory();
+        }
+
+        async function deleteItem(id) {
+            if (!confirm("Remove this item from store?")) return;
+            const token = getAuthToken();
+            const res = await fetch(`${API}/seller/products/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (!res.ok) return alert(data.error || "Failed to delete item");
+            alert("🗑️ Item removed from catalog.");
+            loadSellerInventory();
+        }
     </script>
 </body>
 </html>
