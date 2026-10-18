@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Your Shopping Cart | CloudMart</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+    <script src="/shared.js"></script>
+    <style>
+        .cart-page-layout { max-width: 1300px; margin: 20px auto; padding: 0 20px; display: flex; gap: 25px; }
+        .cart-items-card { flex: 1; background: #fff; border-radius: 8px; padding: 25px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+        .cart-summary-card { width: 320px; background: #fff; border-radius: 8px; padding: 20px; height: fit-content; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+        .cart-row { display: flex; gap: 20px; padding: 18px 0; border-bottom: 1px solid #ddd; align-items: center; }
+        .cart-row img { width: 85px; height: 85px; object-fit: contain; }
+        .btn-qty { width: 28px; height: 28px; border: 1px solid #ccc; background: #f0f2f2; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-buy-order { background: #ffd814; border: 1px solid #a88734; border-radius: 8px; padding: 12px; width: 100%; font-size: 15px; font-weight: 700; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <script>renderAmazonHeader('cart');</script>
+
+    <div class="cart-page-layout">
+        <div class="cart-items-card">
+            <h1 style="font-size:24px; font-weight:700; border-bottom:1px solid #ddd; padding-bottom:12px;">Shopping Cart</h1>
+            <div id="cartListContainer"></div>
+        </div>
+
+        <div class="cart-summary-card">
+            <div style="font-size:17px; margin-bottom:15px;">
+                Subtotal (<span id="cartTotalItems">0</span> items): <strong id="cartSubtotalVal" style="color:#b12704; font-size:20px;">$0.00</strong>
+            </div>
+            <button class="btn-buy-order" onclick="location.href='/checkout'">Proceed to Buy</button>
+        </div>
+    </div>
+
+    <script>
+        function renderCartPage() {
+            const cart = getCart();
+            const container = document.getElementById('cartListContainer');
+            if (!cart.length) {
+                container.innerHTML = `<div style="text-align:center; padding:50px 0;"><p style="font-size:16px; color:#555;">Your CloudMart Cart is empty.</p><a href="/" style="color:#007185; font-weight:600; display:inline-block; margin-top:10px;">Continue Shopping</a></div>`;
+                document.getElementById('cartSubtotalVal').innerText = '$0.00';
+                document.getElementById('cartTotalItems').innerText = '0';
+                return;
+            }
+
+            let subtotal = 0;
+            let totalCount = 0;
+            container.innerHTML = cart.map((it, idx) => {
+                const rowTotal = it.price * it.quantity;
+                subtotal += rowTotal;
+                totalCount += it.quantity;
+                return `
+                    <div class="cart-row">
+                        <img src="${it.image_url}">
+                        <div style="flex:1;">
+                            <a href="/product?id=${it.product_id}" style="font-size:15px; font-weight:600; color:#007185; text-decoration:none;">${it.name}</a>
+                            <div style="font-size:12px; color:#007600; font-weight:600; margin:4px 0;">In Stock</div>
+                            <div style="display:flex; align-items:center; gap:8px; margin-top:8px;">
+                                <button class="btn-qty" onclick="changeQty(${idx}, -1)">-</button>
+                                <span style="font-weight:700;">${it.quantity}</span>
+                                <button class="btn-qty" onclick="changeQty(${idx}, 1)">+</button>
+                                <a href="#" style="font-size:12px; color:#007185; margin-left:15px;" onclick="removeItem(${idx})">Delete</a>
+                            </div>
+                        </div>
+                        <div style="font-size:18px; font-weight:700; color:#b12704;">$${rowTotal.toFixed(2)}</div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('cartSubtotalVal').innerText = `$${subtotal.toFixed(2)}`;
+            document.getElementById('cartTotalItems').innerText = totalCount;
+        }
+
+        function changeQty(idx, delta) {
+            let cart = getCart();
+            cart[idx].quantity += delta;
+            if (cart[idx].quantity <= 0) cart.splice(idx, 1);
+            saveCart(cart);
+            renderCartPage();
+        }
+
+        function removeItem(idx) {
+            let cart = getCart();
+            cart.splice(idx, 1);
+            saveCart(cart);
+            renderCartPage();
+        }
+
+        renderCartPage();
+    </script>
+</body>
+</html>

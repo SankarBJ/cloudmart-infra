@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Your Orders | CloudMart</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+    <script src="/shared.js"></script>
+    <style>
+        .orders-layout { max-width: 1100px; margin: 25px auto; padding: 0 20px; }
+        .order-card { background: #fff; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+        .order-header { background: #f0f2f2; padding: 12px 20px; display: flex; justify-content: space-between; font-size: 13px; color: #565959; }
+        .order-header strong { color: #111; font-size: 14px; }
+        .order-body { padding: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .btn-track { background: #ffd814; border: 1px solid #a88734; border-radius: 8px; padding: 8px 16px; font-weight: 700; text-decoration: none; color: #111; font-size: 13px; }
+    </style>
+</head>
+<body>
+    <script>renderAmazonHeader('orders');</script>
+
+    <div class="orders-layout">
+        <h1 style="font-size:24px; font-weight:800; margin-bottom:15px;">Your Orders</h1>
+        <div id="ordersContainer">Loading past orders...</div>
+    </div>
+
+    <script>
+        async function loadUserOrders() {
+            const token = getAuthToken();
+            if (!token) return location.href = '/login';
+
+            const res = await fetch(`${API}/orders`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const data = await res.json();
+            const container = document.getElementById('ordersContainer');
+
+            if (!data.orders || !data.orders.length) {
+                container.innerHTML = `<div style="background:#fff; padding:40px; text-align:center; border-radius:8px;"><p>No orders placed yet.</p><a href="/" style="color:#007185; font-weight:600; display:inline-block; margin-top:10px;">Explore Products</a></div>`;
+                return;
+            }
+
+            container.innerHTML = data.orders.map(o => `
+                <div class="order-card">
+                    <div class="order-header">
+                        <div><span>ORDER PLACED:</span> <strong>${o.created_at.split('T')[0]}</strong></div>
+                        <div><span>TOTAL:</span> <strong>$${o.total_amount.toFixed(2)}</strong></div>
+                        <div><span>SHIP TO:</span> <strong>${o.shipping_city}</strong></div>
+                        <div><span>ORDER # ${o.id}</span></div>
+                    </div>
+                    <div class="order-body">
+                        <div>
+                            <div style="font-size:16px; font-weight:700; margin-bottom:6px; color:#007600;">Status: ${o.status}</div>
+                            <div style="font-size:13px; color:#555;">Fulfillment: ${o.current_location || 'Warehouse processing'}</div>
+                        </div>
+                        <a href="/tracking?order_id=${o.id}" class="btn-track">Track Package & Doorstep Handshake</a>
+                    </div>
+                </div>
+            `).join('');
+        }
+        loadUserOrders();
+    </script>
+</body>
+</html>

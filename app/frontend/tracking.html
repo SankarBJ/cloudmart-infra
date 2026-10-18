@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Package Tracking & Delivery Handshake | CloudMart</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+    <script src="/shared.js"></script>
+    <style>
+        .tracking-container { max-width: 900px; margin: 25px auto; padding: 0 20px; }
+        .card { background: #fff; border-radius: 8px; padding: 25px; border: 1px solid #ddd; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+        .timeline { margin: 20px 0; display: flex; flex-direction: column; gap: 15px; }
+        .timeline-step { display: flex; gap: 15px; align-items: flex-start; }
+        .timeline-bullet { width: 24px; height: 24px; border-radius: 50%; background: #ccc; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #fff; font-weight: bold; }
+        .timeline-step.completed .timeline-bullet { background: #007600; }
+        .timeline-step.current .timeline-bullet { background: #ffa41c; }
+        .geofence-box { background: #f0f7ff; border: 1.5px solid #007185; border-radius: 8px; padding: 18px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <script>renderAmazonHeader('orders');</script>
+
+    <div class="tracking-container">
+        <div class="card">
+            <h1 id="orderTitle" style="font-size:22px; font-weight:800;">Order Fulfillment & Tracking</h1>
+            <p id="orderSubtitle" style="font-size:13px; color:#555; margin-top:4px;">Real-time Telemetry & Geofenced Security</p>
+
+            <div id="timelineContainer" class="timeline"></div>
+
+            <!-- Capstone Innovation Box -->
+            <div class="geofence-box">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3 style="font-size:15px; font-weight:700; color:#007185;">🛡️ Capstone Innovation: Dual-Factor Spatial-Cryptographic Handshake</h3>
+                    <span style="background:#d4edda; color:#155724; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:700;">GEOFENCE: 50 METERS</span>
+                </div>
+                <p style="font-size:12px; color:#444; margin-top:5px;">
+                    Prevents premature delivery fraud. The OTP is mathematically rejected unless the courier device is physically within 50m of the customer destination.
+                </p>
+
+                <div id="otpDisplayCard" style="background:#fff3cd; border:1px solid #ffeeba; color:#856404; padding:10px; border-radius:6px; margin:12px 0; font-weight:700; font-size:14px;">
+                    🔑 Customer Doorstep OTP: <span id="dispOtpVal" style="font-size:16px; letter-spacing:2px; font-weight:900;">------</span>
+                </div>
+
+                <div style="border-top:1px solid #cce5ff; padding-top:12px; margin-top:12px;">
+                    <label style="font-size:12px; font-weight:700;">Simulate Courier GPS Telemetry (Reviewer Demo):</label>
+                    <div style="display:flex; gap:10px; margin-top:6px;">
+                        <button onclick="setCoords(12.9850, 79.1700, '❌ Courier is 1.8 km Away (Fraud Call Simulation)')" style="padding:8px 12px; font-size:12px; border-radius:4px; border:1px solid #dc3545; background:#fff; cursor:pointer;">
+                            ❌ 1.8 km Away (Fraud Attempt)
+                        </button>
+                        <button onclick="setCoords(12.9717, 79.1586, '✅ Courier at Customer Doorstep (14m Away)')" style="padding:8px 12px; font-size:12px; border-radius:4px; border:1px solid #28a745; background:#e8f5e9; font-weight:bold; cursor:pointer;">
+                            ✅ At Doorstep (14m Away)
+                        </button>
+                    </div>
+                    <div id="telemetryBanner" style="font-size:12px; color:#555; margin-top:8px;">
+                        Active Telemetry: <strong>✅ Courier at Customer Doorstep (14m Away)</strong>
+                    </div>
+                </div>
+
+                <div style="margin-top:15px; display:flex; gap:10px; align-items:center;">
+                    <input type="text" id="handshakeOtp" maxlength="6" placeholder="Enter 6-digit OTP" style="width:160px; padding:9px; font-size:15px; text-align:center; font-weight:bold; border:1px solid #ccc; border-radius:4px;">
+                    <button class="btn-checkout" style="padding:9px 18px; font-size:13px; width:auto;" onclick="verifyHandshake()">
+                        Execute Geofenced Handshake
+                    </button>
+                    <button class="btn-add-cart" style="padding:9px 14px; font-size:12px; width:auto;" onclick="advanceStep()">
+                        Advance Checkpoint
+                    </button>
+                </div>
+                <div id="feedbackBox" style="margin-top:12px; font-size:13px; display:none; padding:10px; border-radius:4px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get('order_id') || 1;
+        let driverLat = 12.9717;
+        let driverLng = 79.1586;
+
+        async function loadTrackingData() {
+            const token = getAuthToken();
+            if (!token) return location.href = '/login';
+
+            const res = await fetch(`${API}/orders/${orderId}/tracking`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (!res.ok) return alert("Order tracking not found.");
+
+            const trk = data.tracking;
+            document.getElementById('orderTitle').innerText = `Fulfillment for Order #${orderId}`;
+            document.getElementById('timelineContainer').innerHTML = trk.timeline.map(s => `
+                <div class="timeline-step ${s.completed ? 'completed' : ''} ${s.current ? 'current' : ''}">
+                    <div class="timeline-bullet">${s.completed ? '✓' : s.step}</div>
+                    <div>
+                        <div style="font-size:14px; font-weight:700;">${s.title}</div>
+                        <div style="font-size:12px; color:#666;">${s.desc}</div>
+                    </div>
+                </div>
+            `).join('');
+
+            const storedOtp = localStorage.getItem(`otp_${orderId}`);
+            if (storedOtp && !trk.otp_verified) {
+                document.getElementById('otpDisplayCard').style.display = 'block';
+                document.getElementById('dispOtpVal').innerText = storedOtp;
+                document.getElementById('handshakeOtp').value = storedOtp;
+            } else {
+                document.getElementById('otpDisplayCard').style.display = 'none';
+            }
+        }
+
+        function setCoords(lat, lng, label) {
+            driverLat = lat;
+            driverLng = lng;
+            document.getElementById('telemetryBanner').innerHTML = `Active Telemetry: <strong>${label}</strong>`;
+        }
+
+        async function advanceStep() {
+            const token = getAuthToken();
+            await fetch(`${API}/orders/${orderId}/advance-status`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            loadTrackingData();
+        }
+
+        async function verifyHandshake() {
+            const token = getAuthToken();
+            const otp = document.getElementById('handshakeOtp').value.trim();
+            const fb = document.getElementById('feedbackBox');
+
+            const res = await fetch(`${API}/orders/${orderId}/otp/verify`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ otp, driver_lat: driverLat, driver_lng: driverLng })
+            });
+            const d = await res.json();
+            fb.style.display = 'block';
+
+            if (!res.ok) {
+                fb.style.background = '#f8d7da';
+                fb.style.color = '#721c24';
+                fb.style.border = '1px solid #f5c6cb';
+                fb.innerHTML = `<strong>⛔ ${d.code || 'REJECTED'}:</strong> ${d.error}`;
+                return;
+            }
+
+            fb.style.background = '#d4edda';
+            fb.style.color = '#155724';
+            fb.style.border = '1px solid #c3e6cb';
+            fb.innerHTML = `<strong>✅ HANDSHAKE COMPLETE:</strong> ${d.message}`;
+            loadTrackingData();
+        }
+
+        loadTrackingData();
+    </script>
+</body>
+</html>

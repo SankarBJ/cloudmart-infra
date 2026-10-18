@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Checkout | CloudMart</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+    <script src="/shared.js"></script>
+    <style>
+        .checkout-layout { max-width: 1100px; margin: 25px auto; padding: 0 20px; display: flex; gap: 30px; }
+        .checkout-steps { flex: 1; }
+        .checkout-box { background: #fff; border-radius: 8px; padding: 22px; margin-bottom: 20px; border: 1px solid #ddd; }
+        .checkout-box h2 { font-size: 17px; font-weight: 700; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 8px; }
+        .order-summary-box { width: 330px; background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 20px; height: fit-content; }
+        .btn-place-order { background: #ffd814; border: 1px solid #a88734; border-radius: 8px; padding: 12px; width: 100%; font-size: 15px; font-weight: 700; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <script>renderAmazonHeader('checkout');</script>
+
+    <div class="checkout-layout">
+        <div class="checkout-steps">
+            <div class="checkout-box">
+                <h2>1. Delivery Address & Spatial Coordinates</h2>
+                <label style="font-size:12px; font-weight:600;">Full Name</label>
+                <input type="text" id="shipName" style="width:100%; padding:8px; margin:4px 0 10px; border:1px solid #ccc; border-radius:4px;">
+                <label style="font-size:12px; font-weight:600;">Street Address</label>
+                <input type="text" id="shipStreet" value="Technology Park Avenue, Katpadi" style="width:100%; padding:8px; margin:4px 0 10px; border:1px solid #ccc; border-radius:4px;">
+                <div style="display:flex; gap:10px;">
+                    <div style="flex:1;">
+                        <label style="font-size:12px; font-weight:600;">City</label>
+                        <input type="text" id="shipCity" value="Vellore" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;">
+                    </div>
+                    <div style="width:120px;">
+                        <label style="font-size:12px; font-weight:600;">PIN Code</label>
+                        <input type="text" id="shipZip" value="632014" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;">
+                    </div>
+                </div>
+                <div style="background:#eef7ff; padding:10px; border-radius:4px; font-size:12px; margin-top:12px;">
+                    📍 <strong>Geocoded Doorstep Coordinates:</strong> 12.9716° N, 79.1585° E (50m Anti-Fraud perimeter enforced).
+                </div>
+            </div>
+
+            <div class="checkout-box">
+                <h2>2. Payment Method</h2>
+                <label style="font-size:13px; font-weight:600;"><input type="radio" checked> 💳 Simulated Amazon Pay / Fast Checkout (Instant Sandbox)</label>
+            </div>
+        </div>
+
+        <div class="order-summary-box">
+            <button class="btn-place-order" onclick="executeCheckout()">Place your order</button>
+            <div style="border-top:1px solid #eee; margin-top:15px; padding-top:12px; font-size:14px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                    <span>Items Total:</span><span id="chkSubtotal">$0.00</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                    <span>Delivery (Prime):</span><span style="color:#007600;">FREE</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:18px; font-weight:800; color:#b12704; border-top:1px solid #ddd; padding-top:8px;">
+                    <span>Order Total:</span><span id="chkTotal">$0.00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const user = getCurrentUser();
+        if (!getAuthToken()) {
+            alert("Please sign in to proceed to checkout.");
+            location.href = '/login';
+        }
+        if (user) document.getElementById('shipName').value = user.name;
+
+        const cart = getCart();
+        if (!cart.length) {
+            alert("Your cart is empty!");
+            location.href = '/';
+        }
+
+        const total = cart.reduce((a, b) => a + (b.price * b.quantity), 0);
+        document.getElementById('chkSubtotal').innerText = `$${total.toFixed(2)}`;
+        document.getElementById('chkTotal').innerText = `$${total.toFixed(2)}`;
+
+        async function executeCheckout() {
+            const token = getAuthToken();
+            const payload = {
+                items: cart.map(i => ({ product_id: i.product_id, quantity: i.quantity })),
+                shipping_address: document.getElementById('shipStreet').value,
+                idempotency_key: 'ord_' + Math.random().toString(36).substring(2, 12)
+            };
+
+            const res = await fetch(`${API}/orders`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (!res.ok) return alert(data.error || "Order placement failed");
+
+            // Empty cart & redirect to dedicated tracking page
+            localStorage.removeItem('cloudmart_cart');
+            if (data.demo_otp_secret) localStorage.setItem(`otp_${data.order_id}`, data.demo_otp_secret);
+            alert(`🎉 Order #${data.order_id} placed successfully!`);
+            location.href = `/tracking?order_id=${data.order_id}`;
+        }
+    </script>
+</body>
+</html>

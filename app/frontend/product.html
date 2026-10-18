@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Product Details | CloudMart</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+    <script src="/shared.js"></script>
+    <style>
+        .pdp-container { max-width: 1300px; margin: 20px auto; padding: 0 20px; display: flex; gap: 40px; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+        .pdp-image-col { flex: 1; max-width: 480px; text-align: center; }
+        .pdp-main-img { width: 100%; max-height: 420px; object-fit: contain; }
+        .pdp-info-col { flex: 1.4; }
+        .pdp-title { font-size: 24px; font-weight: 700; line-height: 1.3; margin-bottom: 8px; }
+        .pdp-rating { color: #e67a00; font-size: 14px; margin-bottom: 12px; }
+        .pdp-price { font-size: 28px; font-weight: 800; color: #b12704; margin: 12px 0; }
+        .pdp-desc { font-size: 14px; line-height: 1.6; color: #333; margin: 15px 0; border-top: 1px solid #eee; padding-top: 15px; }
+        
+        .pdp-buy-box { width: 280px; border: 1px solid #d5d9d9; border-radius: 8px; padding: 20px; height: fit-content; }
+        .btn-pdp-cart { background: #ffd814; border: 1px solid #a88734; border-radius: 20px; padding: 10px; width: 100%; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
+        .btn-pdp-buy { background: #ffa41c; border: 1px solid #a88734; border-radius: 20px; padding: 10px; width: 100%; font-weight: 700; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <script>renderAmazonHeader();</script>
+
+    <div class="pdp-container" id="pdpMain">
+        <p>Loading product details...</p>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id') || 1;
+
+        async function loadProductDetails() {
+            try {
+                const res = await fetch(`${API}/products/${productId}`);
+                const data = await res.json();
+                if (!res.ok) return document.getElementById('pdpMain').innerHTML = "<h2>Product Not Found</h2>";
+
+                const p = data.product;
+                document.title = `${p.name} | CloudMart`;
+
+                document.getElementById('pdpMain').innerHTML = `
+                    <div class="pdp-image-col">
+                        <img src="${p.image_url}" class="pdp-main-img" alt="${p.name}">
+                    </div>
+                    <div class="pdp-info-col">
+                        <span style="font-size:12px; color:#555; text-transform:uppercase; font-weight:600;">Category: ${p.category}</span>
+                        <h1 class="pdp-title">${p.name}</h1>
+                        <div class="pdp-rating">★ ${p.rating} (${p.rating_count} customer reviews) • <span style="color:#007185;">Amazon's Choice</span></div>
+                        <div class="pdp-price">$${p.price.toFixed(2)}</div>
+                        <div style="font-size:13px; color:#565959; margin-bottom:12px;">Inclusive of all taxes. Free Two-Day Delivery with Prime.</div>
+                        <div class="pdp-desc">
+                            <h4 style="margin-bottom:6px;">About this item</h4>
+                            <p>${p.description}</p>
+                        </div>
+                    </div>
+                    <div class="pdp-buy-box">
+                        <div style="font-size:22px; font-weight:700; color:#b12704; margin-bottom:8px;">$${p.price.toFixed(2)}</div>
+                        <div style="font-size:13px; color:#007600; font-weight:700; margin-bottom:12px;">In Stock (${p.stock} units available)</div>
+                        <label style="font-size:12px; font-weight:600;">Quantity:</label>
+                        <select id="pdpQty" style="width:100%; padding:6px; margin:4px 0 15px; border-radius:4px;">
+                            <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                        </select>
+                        <button class="btn-pdp-cart" onclick="addToCartFromPDP(${p.id}, '${p.name.replace(/'/g, "\\'")}', ${p.price}, '${p.image_url}')">Add to Cart</button>
+                        <button class="btn-pdp-buy" onclick="buyNowFromPDP(${p.id}, '${p.name.replace(/'/g, "\\'")}', ${p.price}, '${p.image_url}')">Buy Now</button>
+                    </div>
+                `;
+            } catch(e) {
+                document.getElementById('pdpMain').innerHTML = "<h2>Error loading product</h2>";
+            }
+        }
+
+        function addToCartFromPDP(id, name, price, img) {
+            const qty = parseInt(document.getElementById('pdpQty').value) || 1;
+            let cart = getCart();
+            const existing = cart.find(x => x.product_id === id);
+            if (existing) existing.quantity += qty;
+            else cart.push({ product_id: id, name, price, image_url: img, quantity: qty });
+            saveCart(cart);
+            alert(`✅ Added ${qty}x ${name} to your cart!`);
+            location.href = '/cart';
+        }
+
+        function buyNowFromPDP(id, name, price, img) {
+            addToCartFromPDP(id, name, price, img);
+            location.href = '/checkout';
+        }
+
+        loadProductDetails();
+    </script>
+</body>
+</html>
