@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marti AI Assistant | CloudMart</title>
+<link rel="stylesheet" href="/style.css">
+<script src="/shared.js"></script>
+<style>
+.ai-wrap{max-width:900px;margin:20px auto;padding:0 15px}
+.ai-card{background:#fff;border:1px solid #ddd;border-radius:10px;overflow:hidden}
+.ai-head{background:#131921;color:#fff;padding:14px 18px;font-weight:800}
+.ai-head span{color:#febd69}
+.ai-log{height:420px;overflow-y:auto;padding:16px;background:#f7f8fa}
+.msg{max-width:80%;padding:10px 13px;border-radius:10px;margin-bottom:10px;font-size:14px;line-height:1.5}
+.me{background:#ffd814;margin-left:auto}
+.bot{background:#fff;border:1px solid #ddd}
+.cite{font-size:11px;color:#007185;margin-top:6px}
+.ai-input{display:flex;border-top:1px solid #ddd}
+.ai-input input{flex:1;padding:13px;border:none;outline:none;font-size:14px}
+.ai-input button{background:#ff9900;border:none;padding:0 22px;font-weight:800;cursor:pointer}
+.chips{display:flex;gap:8px;flex-wrap:wrap;padding:10px 14px;background:#fff;border-top:1px solid #eee}
+.chip{background:#eef6ff;border:1px solid #cce5ff;border-radius:20px;padding:5px 12px;font-size:12px;cursor:pointer}
+</style>
+</head>
+<body>
+<div id="hdr"></div>
+<script>renderAmazonHeaderInto('hdr');</script>
+<div class="ai-wrap"><div class="ai-card">
+<div class="ai-head">Marti<span>.ai</span> — CloudMart Assistant ($0 offline RAG)</div>
+<div class="ai-log" id="log"></div>
+<div class="chips">
+<span class="chip" onclick="ask('wireless headphones under $100')">headphones under $100</span>
+<span class="chip" onclick="ask('gift for a coder')">gift for coder</span>
+<span class="chip" onclick="ask('show me trending')">trending</span>
+<span class="chip" onclick="ask('track my order')">track order</span>
+<span class="chip" onclick="ask('return policy')">returns?</span>
+</div>
+<div class="ai-input">
+<input id="q" placeholder="Ask Marti: products, budgets, policies..." onkeyup="if(event.key==='Enter')send()">
+<button onclick="send()">Ask</button>
+</div>
+</div></div>
+<script>
+const log=document.getElementById('log');
+function bubble(t,c){const d=document.createElement('div');d.className='msg '+c;d.innerHTML=t;log.appendChild(d);log.scrollTop=log.scrollHeight;}
+function ask(t){document.getElementById('q').value=t;send();}
+async function send(){
+ const q=document.getElementById('q').value.trim();if(!q)return;
+ document.getElementById('q').value='';bubble(q,'me');bubble('Thinking...','bot');
+ try{
+  const r=await fetch(API+'/ai/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:q})});
+  const d=await r.json();log.removeChild(log.lastChild);
+  let h=d.answer+'<div class="cite">Grounded: '+(d.citations||[]).map(c=>'['+c.type+'] '+c.title).join(' · ')+'</div>';
+  bubble(h,'bot');
+ }catch(e){log.removeChild(log.lastChild);bubble('AI offline — try again.','bot');}
+}
+bubble("Hi! I'm <b>Marti</b>. Ask: 'wireless headphones under $100', 'gift for coder', 'trending', 'track my order'.",'bot');
+</script>
+</body>
+</html>

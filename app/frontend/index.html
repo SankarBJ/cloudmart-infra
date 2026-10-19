@@ -390,7 +390,23 @@
             const pRes = await fetch(pUrl);
             const pData = await pRes.json();
 
-            document.getElementById('productsGrid').innerHTML = pData.products.map(p => `
+            // AI semantic re-rank when user searched (graceful fallback to backend list)
+            let aiNote = '';
+            if (searchQ) {
+                try {
+                    const aiRes = await fetch(`${API}/ai/search?q=${encodeURIComponent(searchQ)}&top=10`);
+                    const aiData = await aiRes.json();
+                    if (aiRes.ok && aiData.results && aiData.results.length) {
+                        const byId = {}; pData.products.forEach(p => byId[p.id] = p);
+                        const ranked = aiData.results.map(r => byId[r.product.id]).filter(Boolean);
+                        pData.products.forEach(p => { if (!ranked.find(x => x.id === p.id)) ranked.push(p); });
+                        pData.products = ranked;
+                        aiNote = `<div style="background:#eef6ff;border:1px solid #cce5ff;border-radius:6px;padding:8px 12px;font-size:12px;color:#004085;margin-bottom:12px;">✨ AI semantic search active — ranked by relevance (TF-IDF, offline). <a href="/ai-chat" style="color:#007185;font-weight:700;">Ask Marti →</a></div>`;
+                    }
+                } catch(e) { /* fallback to keyword list */ }
+            }
+
+            document.getElementById('productsGrid').innerHTML = aiNote + pData.products.map(p => `
                 <div class="product-card">
                     <img src="${p.image_url}" alt="${p.name}" 
                          onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600';"
@@ -426,9 +442,30 @@
                     </td>
                     <td>
                         <button class="btn-delete-item" onclick="deleteItem(${p.id})">Remove Item</button>
+                        <button style="background:#eef6ff;border:1px solid #cce5ff;border-radius:4px;padding:5px 10px;font-size:11px;font-weight:bold;cursor:pointer;margin-left:4px;" onclick="showForecast(${p.id}, '${p.name.replace(/'/g, "\\'")}')">📈 Forecast</button>
                     </td>
                 </tr>
             `).join('');
+            loadTrendingPanel();
+        }
+
+        async function loadTrendingPanel() {
+            try {
+                const r = await fetch(`${API}/ai/trending?top=3`);
+                const d = await r.json();
+                if (!r.ok) return;
+                const box = document.getElementById('kpiValue');
+                if (box) box.title = 'Trending: ' + (d.items||[]).map(x => x.product.name).join(', ');
+            } catch(e) {}
+        }
+
+        async function showForecast(pid, name) {
+            try {
+                const r = await fetch(`${API}/ai/forecast/${pid}`);
+                const d = await r.json();
+                if (!r.ok || d.error) return alert('Forecast unavailable');
+                alert(`📈 Demand Forecast — ${name}\n\nPredicted sales: ${d.predicted_daily_units} units/day\nStock: ${d.stock} units\nDays of cover: ${d.days_of_cover}\n${d.reorder_recommended ? '⚠️ REORDER RECOMMENDED (under 14 days cover)' : '✅ Stock healthy'}\n\nModel: ${d.model}`);
+            } catch(e) { alert('Forecast service offline'); }
         }
 
         async function executeAddProduct() {

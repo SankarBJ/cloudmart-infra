@@ -69,6 +69,7 @@ function renderAmazonHeaderInto(containerId, activePage = '') {
             <a href="/?cat=Books">Books</a>
             <a href="/orders">Order History</a>
             <a href="/tracking">Logistics Handshake</a>
+            <a href="/ai-chat" style="color:#febd69;font-weight:700;">✨ Marti AI</a>
         </div>
     </header>
     `;

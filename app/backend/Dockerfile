@@ -6,7 +6,7 @@ COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY app.py .
+COPY app.py ai_core.py ai_engine.py ai_chat.py ./
 
 EXPOSE 5000
 

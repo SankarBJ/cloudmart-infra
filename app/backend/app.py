@@ -12,6 +12,8 @@ import bcrypt
 import jwt
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
+from ai_engine import CloudMartAIEngine
+from ai_chat import chat_answer
 
 FRONTEND_DIR = os.environ.get('FRONTEND_DIR', os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend')))
 app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path='')
@@ -174,6 +176,42 @@ def get_products():
 def get_product_one(pid):
     p = next((x for x in DEMO_PRODUCTS if x['id'] == pid), DEMO_PRODUCTS[0])
     return jsonify({"product": p}), 200
+
+# ----------------- CLOUDMART AI: SEARCH / CHAT / RECOMMEND -----------------
+def _ai():
+    return CloudMartAIEngine(DEMO_PRODUCTS)
+
+
+@app.route('/api/ai/search', methods=['GET'])
+def ai_search():
+    q = request.args.get('q', '')
+    top = int(request.args.get('top', 5))
+    return jsonify({"query": q, "results": _ai().semantic_search(q, top_k=top),
+                    "engine": "tf-idf offline"}), 200
+
+
+@app.route('/api/ai/chat', methods=['POST'])
+def ai_chat():
+    data = request.get_json() or {}
+    return jsonify(chat_answer(_ai(), data.get('message', ''))), 200
+
+
+@app.route('/api/ai/recommend', methods=['GET'])
+def ai_recommend():
+    pid = request.args.get('product_id', '1')
+    top = int(request.args.get('top', 4))
+    return jsonify({"product_id": pid, "recommendations": _ai().recommend(pid, top_k=top)}), 200
+
+
+@app.route('/api/ai/trending', methods=['GET'])
+def ai_trending():
+    top = int(request.args.get('top', 5))
+    return jsonify(_ai().trending(top_k=top)), 200
+
+
+@app.route('/api/ai/forecast/<int:pid>', methods=['GET'])
+def ai_forecast(pid):
+    return jsonify(_ai().forecast(pid)), 200
 
 # ----------------- SELLER CENTRAL -----------------
 @app.route('/api/seller/products', methods=['POST'])
