@@ -2,7 +2,6 @@ services:
   db:
     image: postgres:16-alpine
     container_name: cloudmart-db
-    restart: unless-stopped
     environment:
       POSTGRES_DB: cloudmart
       POSTGRES_USER: cloudmart
@@ -19,7 +18,8 @@ services:
   backend:
     build: ./backend
     container_name: cloudmart-backend
-    restart: unless-stopped
+    volumes:
+      - ./backend:/app
     environment:
       DB_HOST: db
       DB_NAME: cloudmart
@@ -36,7 +36,6 @@ services:
   frontend:
     build: ./frontend
     container_name: cloudmart-frontend
-    restart: unless-stopped
     volumes:
       - ./frontend:/usr/share/nginx/html
     ports:

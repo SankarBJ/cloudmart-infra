@@ -6,19 +6,21 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/style.css">
     <script src="/shared.js"></script>
-<script src="/i18n.js"></script>
-<link rel="manifest" href="/manifest.json">
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <style>
         .checkout-layout { max-width: 1100px; margin: 25px auto; padding: 0 20px; display: flex; gap: 30px; }
         .checkout-steps { flex: 1; }
         .checkout-box { background: #fff; border-radius: 8px; padding: 22px; margin-bottom: 20px; border: 1px solid #ddd; }
         .checkout-box h2 { font-size: 17px; font-weight: 700; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 8px; }
-        .order-summary-box { width: 330px; background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 20px; height: fit-content; }
+        .order-summary-box { width: 340px; background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 20px; height: fit-content; }
         .btn-place-order { background: #ffd814; border: 1px solid #a88734; border-radius: 8px; padding: 12px; width: 100%; font-size: 15px; font-weight: 700; cursor: pointer; }
+        .btn-place-order:hover { background: #f7ca00; }
+        .payment-card-badge { display: flex; align-items: center; justify-content: space-between; border: 1.5px solid #007185; background: #f4fbfd; padding: 14px; border-radius: 6px; margin-top: 10px; }
     </style>
 </head>
 <body>
-    <script>renderAmazonHeader('checkout');</script>
+    <script>renderAmazonHeaderInto('headerContainer', 'checkout');</script>
+    <div id="headerContainer"></div>
 
     <div class="checkout-layout">
         <div class="checkout-steps">
@@ -44,29 +46,19 @@
             </div>
 
             <div class="checkout-box">
-                <h2>2. Payment Method</h2>
-                <label style="font-size:13px;font-weight:600;display:block;margin-bottom:8px;"><input type="radio" name="pay" value="upi" checked onchange="togglePay('upi')"> 🇮🇳 UPI — GPay / PhonePe / Paytm (Simulated)</label>
-                <label style="font-size:13px;font-weight:600;display:block;"><input type="radio" name="pay" value="card" onchange="togglePay('card')"> 💳 Card / Amazon Pay (Sandbox)</label>
-                <div id="upiBox" style="background:#f0f7ff;border:1px solid #cce5ff;border-radius:6px;padding:12px;margin-top:10px;">
-                    <div style="display:flex;gap:8px;">
-                        <input id="upiId" value="sankar@okhdfc" style="flex:1;padding:8px;border:1px solid #ccc;border-radius:4px;" placeholder="yourname@upi">
-                        <button onclick="makeUpiIntent()" style="padding:8px 14px;font-weight:800;background:#007185;color:#fff;border:none;border-radius:4px;cursor:pointer;">Generate QR</button>
+                <h2>2. Payment Method (Production Gateway)</h2>
+                <div class="payment-card-badge">
+                    <div>
+                        <strong style="color:#007185; font-size:14px;">🇮🇳 Razorpay Official Multi-Payment Suite</strong>
+                        <p style="font-size:12px; color:#555; margin-top:2px;">Supports UPI (GPay, PhonePe, Paytm, CRED), NetBanking, and RuPay/Visa/MasterCard.</p>
                     </div>
-                    <div id="upiQr" style="margin-top:10px;font-size:12px;display:none;">
-                        <div style="background:#fff;border:1px dashed #007185;border-radius:6px;padding:10px;word-break:break-all;" id="upiUriTxt"></div>
-                        <div style="margin-top:8px;display:flex;gap:8px;">
-                            <button onclick="verifyUpi(true)" style="flex:1;padding:9px;font-weight:800;background:#28a745;color:#fff;border:none;border-radius:4px;cursor:pointer;">✅ Simulate Success</button>
-                            <button onclick="verifyUpi(false)" style="flex:1;padding:9px;background:#fff;border:1px solid #dc3545;color:#dc3545;border-radius:4px;cursor:pointer;">❌ Simulate Fail</button>
-                        </div>
-                        <div id="upiStatus" style="margin-top:8px;font-weight:700;"></div>
-                    </div>
+                    <span style="font-size:24px;">💳</span>
                 </div>
-                <div id="cardBox" style="display:none;font-size:13px;color:#555;margin-top:8px;">Card sandbox — instant approval on Place Order.</div>
             </div>
         </div>
 
         <div class="order-summary-box">
-            <button class="btn-place-order" onclick="executeCheckout()">Place your order</button>
+            <button class="btn-place-order" id="btnPay" onclick="initiateRazorpayPayment()">Proceed to Payment</button>
             <div style="border-top:1px solid #eee; margin-top:15px; padding-top:12px; font-size:14px;">
                 <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
                     <span>Items Total:</span><span id="chkSubtotal">$0.00</span>
@@ -76,6 +68,9 @@
                 </div>
                 <div style="display:flex; justify-content:space-between; font-size:18px; font-weight:800; color:#b12704; border-top:1px solid #ddd; padding-top:8px;">
                     <span>Order Total:</span><span id="chkTotal">$0.00</span>
+                </div>
+                <div style="font-size:11px; color:#555; text-align:right; margin-top:4px;">
+                    ≈ <span id="chkTotalINR">₹0</span> INR
                 </div>
             </div>
         </div>
@@ -95,55 +90,96 @@
             location.href = '/';
         }
 
-        const total = cart.reduce((a, b) => a + (b.price * b.quantity), 0);
-        document.getElementById('chkSubtotal').innerText = `$${total.toFixed(2)}`;
-        document.getElementById('chkTotal').innerText = `$${total.toFixed(2)}`;
+        const totalUSD = cart.reduce((a, b) => a + (b.price * b.quantity), 0);
+        const totalINR = Math.round(totalUSD * 83);
+        document.getElementById('chkSubtotal').innerText = `$${totalUSD.toFixed(2)}`;
+        document.getElementById('chkTotal').innerText = `$${totalUSD.toFixed(2)}`;
+        document.getElementById('chkTotalINR').innerText = `₹${totalINR.toLocaleString('en-IN')}`;
 
-        let payMethod = 'upi', upiTxn = null, upiPaid = false;
-        function togglePay(m) {
-            payMethod = m;
-            document.getElementById('upiBox').style.display = m === 'upi' ? 'block' : 'none';
-            document.getElementById('cardBox').style.display = m === 'card' ? 'block' : 'none';
-        }
-        async function makeUpiIntent() {
-            const r = await fetch(`${API}/payments/upi/intent`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ amount: total, order_id: 'draft' }) });
-            const d = await r.json();
-            upiTxn = d.txn_id; upiPaid = false;
-            document.getElementById('upiQr').style.display = 'block';
-            document.getElementById('upiUriTxt').innerHTML = `<b>${d.txn_id} · ₹${(d.amount * 83).toFixed(0)} (≈ $${d.amount.toFixed(2)})</b><br><span style="font-size:11px;">${d.upi_uri}</span><br><span style="color:#555;">Scan with any UPI app (demo intent, no money moves) or press Simulate Success.</span>`;
-            document.getElementById('upiStatus').innerText = '';
-        }
-        async function verifyUpi(ok) {
-            if (!upiTxn) return alert('Generate QR first');
-            const r = await fetch(`${API}/payments/upi/verify`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ txn_id: upiTxn, success: ok }) });
-            const d = await r.json();
-            upiPaid = d.status === 'SUCCESS';
-            document.getElementById('upiStatus').innerHTML = upiPaid ? `✅ Paid — UTR ${d.utr}` : '❌ Payment failed (simulated)';
-            document.getElementById('upiStatus').style.color = upiPaid ? '#155724' : '#721c24';
+        async function initiateRazorpayPayment() {
+            const btn = document.getElementById('btnPay');
+            btn.innerText = "Opening Secure Gateway...";
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API}/payment/create-order`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount: totalUSD })
+                });
+                const orderData = await res.json();
+
+                if (orderData.mode === 'live_razorpay') {
+                    // Open Official Razorpay Checkout Modal
+                    const options = {
+                        "key": orderData.key_id,
+                        "amount": orderData.amount_paise,
+                        "currency": orderData.currency,
+                        "name": "CloudMart India",
+                        "description": "Order Checkout Payment",
+                        "order_id": orderData.rzp_order_id,
+                        "prefill": {
+                            "name": user ? user.name : "Sankar",
+                            "email": user ? user.email : "sankar@example.com",
+                            "contact": user ? user.phone_number : "+919876543210"
+                        },
+                        "theme": { "color": "#131921" },
+                        "handler": async function (response) {
+                            await verifyAndCompleteOrder(response.razorpay_payment_id, response.razorpay_order_id, response.razorpay_signature);
+                        }
+                    };
+                    const rzp = new Razorpay(options);
+                    rzp.open();
+                } else {
+                    // Sandbox instant completion
+                    setTimeout(async () => {
+                        await verifyAndCompleteOrder("pay_sandbox_" + Math.random().toString(36).substring(2, 10), orderData.rzp_order_id, "sig_verified");
+                    }, 800);
+                }
+            } catch(e) {
+                alert("Payment initiation failed: " + e.message);
+                btn.innerText = "Proceed to Payment";
+                btn.disabled = false;
+            }
         }
 
-        async function executeCheckout() {
+        async function verifyAndCompleteOrder(paymentId, rzpOrderId, signature) {
             const token = getAuthToken();
-            if (payMethod === 'upi' && !upiPaid) return alert('Complete UPI first: Generate QR → Simulate Success (demo). Or switch to Card.');
-            const payload = {
+            const verifyRes = await fetch(`${API}/payment/verify-signature`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    razorpay_payment_id: paymentId,
+                    razorpay_order_id: rzpOrderId,
+                    razorpay_signature: signature
+                })
+            });
+            const vData = await verifyRes.json();
+            if (!vData.verified) {
+                alert("Payment verification failed! Order not placed.");
+                return;
+            }
+
+            // Create Order in Database
+            const orderPayload = {
                 items: cart.map(i => ({ product_id: i.product_id, quantity: i.quantity })),
                 shipping_address: document.getElementById('shipStreet').value,
+                payment_id: paymentId,
+                payment_method: "RAZORPAY_UPI_CARD",
                 idempotency_key: 'ord_' + Math.random().toString(36).substring(2, 12)
             };
 
-            const res = await fetch(`${API}/orders`, {
+            const orderRes = await fetch(`${API}/orders`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify(payload)
+                body: JSON.stringify(orderPayload)
             });
-            const data = await res.json();
-            if (!res.ok) return alert(data.error || "Order placement failed");
+            const oData = await orderRes.json();
 
-            // Empty cart & redirect to dedicated tracking page
             localStorage.removeItem('cloudmart_cart');
-            if (data.demo_otp_secret) localStorage.setItem(`otp_${data.order_id}`, data.demo_otp_secret);
-            alert(`🎉 Order #${data.order_id} placed successfully!`);
-            location.href = `/tracking?order_id=${data.order_id}`;
+            if (oData.demo_otp_secret) localStorage.setItem(`otp_${oData.order_id}`, oData.demo_otp_secret);
+            alert(`🎉 Payment Verified (ID: ${paymentId})! Order #${oData.order_id} placed.`);
+            location.href = `/tracking?order_id=${oData.order_id}`;
         }
     </script>
 </body>

@@ -376,6 +376,72 @@ def verify_geofenced_otp(order_id):
         }
     }), 200
 
+
+# ----------------- REAL PAYMENT GATEWAY (RAZORPAY) -----------------
+RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID", "rzp_test_placeholder")
+RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET", "secret_placeholder")
+
+try:
+    import razorpay
+    rzp_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+except Exception:
+    rzp_client = None
+
+@app.route("/api/payment/create-order", methods=["POST"])
+def rzp_create_order():
+    data = request.get_json() or {}
+    amount_inr = float(data.get("amount", 49.99))
+    amount_paise = int(amount_inr * 83 * 100) # Convert to INR paise
+
+    if rzp_client and RAZORPAY_KEY_ID != "rzp_test_placeholder":
+        try:
+            rzp_order = rzp_client.order.create({
+                "amount": amount_paise,
+                "currency": "INR",
+                "receipt": f"rcpt_{secrets.token_hex(4)}",
+                "payment_capture": 1
+            })
+            return jsonify({
+                "mode": "live_razorpay",
+                "key_id": RAZORPAY_KEY_ID,
+                "rzp_order_id": rzp_order["id"],
+                "amount_paise": amount_paise,
+                "currency": "INR"
+            }), 200
+        except Exception as e:
+            print(f"[Razorpay API Error] {str(e)}")
+
+    # Fallback sandbox order intent if keys are not yet configured
+    mock_order_id = f"order_{secrets.token_hex(10)}"
+    return jsonify({
+        "mode": "sandbox",
+        "key_id": RAZORPAY_KEY_ID,
+        "rzp_order_id": mock_order_id,
+        "amount_paise": amount_paise,
+        "currency": "INR"
+    }), 200
+
+@app.route("/api/payment/verify-signature", methods=["POST"])
+def rzp_verify_signature():
+    data = request.get_json() or {}
+    rzp_order_id = data.get("razorpay_order_id", "")
+    rzp_payment_id = data.get("razorpay_payment_id", "")
+    rzp_signature = data.get("razorpay_signature", "")
+
+    if rzp_client and RAZORPAY_KEY_ID != "rzp_test_placeholder":
+        try:
+            params = {
+                "razorpay_order_id": rzp_order_id,
+                "razorpay_payment_id": rzp_payment_id,
+                "razorpay_signature": rzp_signature
+            }
+            rzp_client.utility.verify_payment_signature(params)
+            return jsonify({"verified": True, "payment_id": rzp_payment_id}), 200
+        except Exception as e:
+            return jsonify({"verified": False, "error": f"Cryptographic signature check failed: {str(e)}"}), 400
+
+    return jsonify({"verified": True, "payment_id": rzp_payment_id or f"pay_{secrets.token_hex(8)}"}), 200
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
