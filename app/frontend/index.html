@@ -3,14 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CloudMart | Amazon-Style Marketplace</title>
+    <title>CloudMart | Amazon-Style Marketplace & Logistics</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/style.css">
     <script src="/shared.js"></script>
-<script src="/i18n.js"></script>
-<link rel="manifest" href="/manifest.json">
-<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(()=>{});}</script>
-<meta name="theme-color" content="#ff9900">
     <style>
         .auth-gateway-overlay {
             min-height: 100vh;
@@ -60,11 +56,33 @@
         .inventory-table th, .inventory-table td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
         .inventory-table th { background: #f8f9fa; font-weight: 700; }
         .btn-delete-item { background: #dc3545; color: #fff; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; }
+
+        /* Floating AI Assistant Badge */
+        .ai-assistant-btn {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: linear-gradient(135deg, #131921 0%, #232f3e 100%);
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 14px;
+            z-index: 1000;
+            border: 2px solid #febd69;
+            transition: transform 0.2s;
+        }
+        .ai-assistant-btn:hover { transform: scale(1.05); }
     </style>
 </head>
 <body>
 
-    <!-- GATED AUTH GATEWAY (ONLY SHOWN WHEN LOGGED OUT — ZERO HEADERS) -->
+    <!-- GATED GATEWAY: ZERO PRODUCTS VISIBLE UNTIL AUTHENTICATED -->
     <div id="authGateway" class="auth-gateway-overlay">
         <div style="text-align:center;">
             <a href="/" class="gateway-logo">CloudMart<span>.in</span></a>
@@ -140,7 +158,7 @@
         </div>
     </div>
 
-    <!-- PERSONA 1: CUSTOMER STOREFRONT (HEADER INJECTED INTO #customerHeaderContainer ONCE) -->
+    <!-- PERSONA 1: CUSTOMER STOREFRONT -->
     <div id="customerStorefrontApp">
         <div id="customerHeaderContainer"></div>
         <div class="layout-container">
@@ -151,23 +169,28 @@
                 </aside>
                 <main style="flex:1;">
                     <div style="background:linear-gradient(135deg, #232f3e 0%, #131921 100%); color:#fff; padding:20px; border-radius:8px; margin-bottom:15px;">
-                        <h2 style="font-size:22px; font-weight:800;">CloudMart Festive Store</h2>
+                        <h2 style="font-size:22px; font-weight:800;">CloudMart Festive Retail Store</h2>
                         <p style="font-size:13px; color:#ddd; margin-top:3px;">Protected by Dual-Factor Geofenced Delivery Logistics Handshake.</p>
                     </div>
                     <div id="productsGrid" class="product-grid">Loading products...</div>
                 </main>
             </div>
         </div>
+
+        <!-- Floating AI Shopping Chatbot Button -->
+        <a href="/ai-chat" class="ai-assistant-btn">
+            <span>✨</span> Ask Marti AI Shopping Assistant
+        </a>
     </div>
 
-    <!-- PERSONA 2: SELLER CENTRAL (HEADER INJECTED INTO #sellerHeaderContainer ONCE) -->
+    <!-- PERSONA 2: SELLER CENTRAL -->
     <div id="sellerCentralApp">
         <div id="sellerHeaderContainer"></div>
         <div class="layout-container">
             <div class="seller-header">
                 <div>
                     <h1 style="font-size:22px; font-weight:800;">Amazon Seller Central — Merchant Portal</h1>
-                    <p style="font-size:13px; color:#ddd; margin-top:3px;">Logged in as Merchant / Vendor. Manage listings, stock, and pricing.</p>
+                    <p style="font-size:13px; color:#ddd; margin-top:3px;">Logged in as Merchant / Vendor. Manage retail catalog, stock, and pricing.</p>
                 </div>
                 <button class="btn-checkout" style="width:auto; padding:8px 15px; font-size:13px;" onclick="switchRoleTo('customer')">Preview as Shopper</button>
             </div>
@@ -180,7 +203,7 @@
             </div>
 
             <div class="vendor-box">
-                <h2 style="font-size:17px; font-weight:700; margin-bottom:12px; border-bottom:1px solid #eee; padding-bottom:8px;">Add New Item to Catalog</h2>
+                <h2 style="font-size:17px; font-weight:700; margin-bottom:12px; border-bottom:1px solid #eee; padding-bottom:8px;">Add New Retail Item</h2>
                 <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px;">
                     <div>
                         <label style="font-size:12px; font-weight:600;">Product Title</label>
@@ -209,11 +232,11 @@
                     <label style="font-size:12px; font-weight:600;">Image URL</label>
                     <input type="text" id="addProdImg" placeholder="https://images.unsplash.com/..." value="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;">
                 </div>
-                <button class="btn-checkout" style="margin-top:12px; width:auto; padding:10px 20px;" onclick="executeAddProduct()">Publish to CloudMart Storefront</button>
+                <button class="btn-checkout" style="margin-top:12px; width:auto; padding:10px 20px;" onclick="executeAddProduct()">Publish to CloudMart Catalog</button>
             </div>
 
             <div class="vendor-box">
-                <h2 style="font-size:17px; font-weight:700; margin-bottom:10px;">Merchant Inventory & Item Removal</h2>
+                <h2 style="font-size:17px; font-weight:700; margin-bottom:10px;">Merchant Inventory & Removal</h2>
                 <table class="inventory-table">
                     <thead>
                         <tr>
@@ -394,23 +417,7 @@
             const pRes = await fetch(pUrl);
             const pData = await pRes.json();
 
-            // AI semantic re-rank when user searched (graceful fallback to backend list)
-            let aiNote = '';
-            if (searchQ) {
-                try {
-                    const aiRes = await fetch(`${API}/ai/search?q=${encodeURIComponent(searchQ)}&top=10`);
-                    const aiData = await aiRes.json();
-                    if (aiRes.ok && aiData.results && aiData.results.length) {
-                        const byId = {}; pData.products.forEach(p => byId[p.id] = p);
-                        const ranked = aiData.results.map(r => byId[r.product.id]).filter(Boolean);
-                        pData.products.forEach(p => { if (!ranked.find(x => x.id === p.id)) ranked.push(p); });
-                        pData.products = ranked;
-                        aiNote = `<div style="background:#eef6ff;border:1px solid #cce5ff;border-radius:6px;padding:8px 12px;font-size:12px;color:#004085;margin-bottom:12px;">✨ AI semantic search active — ranked by relevance (TF-IDF, offline). <a href="/ai-chat" style="color:#007185;font-weight:700;">Ask Marti →</a></div>`;
-                    }
-                } catch(e) { /* fallback to keyword list */ }
-            }
-
-            document.getElementById('productsGrid').innerHTML = aiNote + pData.products.map(p => `
+            document.getElementById('productsGrid').innerHTML = pData.products.map(p => `
                 <div class="product-card">
                     <img src="${p.image_url}" alt="${p.name}" 
                          onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600';"
@@ -446,30 +453,9 @@
                     </td>
                     <td>
                         <button class="btn-delete-item" onclick="deleteItem(${p.id})">Remove Item</button>
-                        <button style="background:#eef6ff;border:1px solid #cce5ff;border-radius:4px;padding:5px 10px;font-size:11px;font-weight:bold;cursor:pointer;margin-left:4px;" onclick="showForecast(${p.id}, '${p.name.replace(/'/g, "\\'")}')">📈 Forecast</button>
                     </td>
                 </tr>
             `).join('');
-            loadTrendingPanel();
-        }
-
-        async function loadTrendingPanel() {
-            try {
-                const r = await fetch(`${API}/ai/trending?top=3`);
-                const d = await r.json();
-                if (!r.ok) return;
-                const box = document.getElementById('kpiValue');
-                if (box) box.title = 'Trending: ' + (d.items||[]).map(x => x.product.name).join(', ');
-            } catch(e) {}
-        }
-
-        async function showForecast(pid, name) {
-            try {
-                const r = await fetch(`${API}/ai/forecast/${pid}`);
-                const d = await r.json();
-                if (!r.ok || d.error) return alert('Forecast unavailable');
-                alert(`📈 Demand Forecast — ${name}\n\nPredicted sales: ${d.predicted_daily_units} units/day\nStock: ${d.stock} units\nDays of cover: ${d.days_of_cover}\n${d.reorder_recommended ? '⚠️ REORDER RECOMMENDED (under 14 days cover)' : '✅ Stock healthy'}\n\nModel: ${d.model}`);
-            } catch(e) { alert('Forecast service offline'); }
         }
 
         async function executeAddProduct() {
