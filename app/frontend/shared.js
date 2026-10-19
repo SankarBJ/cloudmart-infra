@@ -41,6 +41,8 @@ function renderAmazonHeaderInto(containerId, activePage = '') {
                 <button onclick="executeSearch()">🔍</button>
             </div>
 
+            <div id="langSlot"></div>
+
             <div class="amz-nav-actions">
                 <a href="#" class="amz-nav-link" onclick="handleLogout()">
                     <span style="font-size:11px;">${userGreeting}</span>
@@ -75,6 +77,12 @@ function renderAmazonHeaderInto(containerId, activePage = '') {
     `;
 
     updateCartCount();
+    try {
+        const slot = document.getElementById('langSlot');
+        if (slot && typeof langPickerHTML === 'function') slot.innerHTML = langPickerHTML();
+        const si = document.getElementById('globalSearchInput');
+        if (si && typeof t === 'function') si.placeholder = t('search');
+    } catch (e) {}
 }
 
 function executeSearch() {

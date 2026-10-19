@@ -14,6 +14,7 @@ from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 from ai_engine import CloudMartAIEngine
 from ai_chat import chat_answer
+from courier_sim import courier_route
 
 FRONTEND_DIR = os.environ.get('FRONTEND_DIR', os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend')))
 app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path='')
@@ -212,6 +213,42 @@ def ai_trending():
 @app.route('/api/ai/forecast/<int:pid>', methods=['GET'])
 def ai_forecast(pid):
     return jsonify(_ai().forecast(pid)), 200
+
+
+# ----------------- UX COMMERCE: COURIER ROUTE + UPI MOCK -----------------
+@app.route('/api/orders/<int:order_id>/route', methods=['GET'])
+def order_route(order_id):
+    steps = int(request.args.get('steps', 12))
+    return jsonify(courier_route(order_id, steps=steps)), 200
+
+
+@app.route('/api/payments/upi/intent', methods=['POST'])
+def upi_intent():
+    """Mock UPI intent: returns a demo upi:// string + QR payload (no real money moves)."""
+    data = request.get_json() or {}
+    amount = float(data.get('amount', 0))
+    order_id = data.get('order_id', 'demo')
+    txn = f"TXN{secrets.randbelow(900000) + 100000}"
+    upi_id = "cloudmart@ybl"
+    uri = (f"upi://pay?pa={upi_id}&pn=CloudMart&tr={txn}"
+           f"&am={amount:.2f}&cu=INR&tn=Order{order_id}")
+    return jsonify({
+        "txn_id": txn, "upi_id": upi_id, "amount": round(amount, 2),
+        "upi_uri": uri, "qr_text": uri,
+        "note": "SIMULATED gateway — scan with any UPI app to see prefilled intent; click Simulate Success to complete demo.",
+    }), 200
+
+
+@app.route('/api/payments/upi/verify', methods=['POST'])
+def upi_verify():
+    data = request.get_json() or {}
+    txn = data.get('txn_id', 'TXN000000')
+    ok = data.get('success', True)
+    return jsonify({
+        "txn_id": txn, "status": "SUCCESS" if ok else "FAILED",
+        "utr": f"UTR{secrets.randbelow(900000000) + 100000000}" if ok else None,
+        "message": "Mock UPI payment captured (demo only, no money moved).",
+    }), 200
 
 # ----------------- SELLER CENTRAL -----------------
 @app.route('/api/seller/products', methods=['POST'])

@@ -6,6 +6,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/style.css">
     <script src="/shared.js"></script>
+<script src="/i18n.js"></script>
+<link rel="manifest" href="/manifest.json">
     <style>
         .checkout-layout { max-width: 1100px; margin: 25px auto; padding: 0 20px; display: flex; gap: 30px; }
         .checkout-steps { flex: 1; }
@@ -43,7 +45,23 @@
 
             <div class="checkout-box">
                 <h2>2. Payment Method</h2>
-                <label style="font-size:13px; font-weight:600;"><input type="radio" checked> 💳 Simulated Amazon Pay / Fast Checkout (Instant Sandbox)</label>
+                <label style="font-size:13px;font-weight:600;display:block;margin-bottom:8px;"><input type="radio" name="pay" value="upi" checked onchange="togglePay('upi')"> 🇮🇳 UPI — GPay / PhonePe / Paytm (Simulated)</label>
+                <label style="font-size:13px;font-weight:600;display:block;"><input type="radio" name="pay" value="card" onchange="togglePay('card')"> 💳 Card / Amazon Pay (Sandbox)</label>
+                <div id="upiBox" style="background:#f0f7ff;border:1px solid #cce5ff;border-radius:6px;padding:12px;margin-top:10px;">
+                    <div style="display:flex;gap:8px;">
+                        <input id="upiId" value="sankar@okhdfc" style="flex:1;padding:8px;border:1px solid #ccc;border-radius:4px;" placeholder="yourname@upi">
+                        <button onclick="makeUpiIntent()" style="padding:8px 14px;font-weight:800;background:#007185;color:#fff;border:none;border-radius:4px;cursor:pointer;">Generate QR</button>
+                    </div>
+                    <div id="upiQr" style="margin-top:10px;font-size:12px;display:none;">
+                        <div style="background:#fff;border:1px dashed #007185;border-radius:6px;padding:10px;word-break:break-all;" id="upiUriTxt"></div>
+                        <div style="margin-top:8px;display:flex;gap:8px;">
+                            <button onclick="verifyUpi(true)" style="flex:1;padding:9px;font-weight:800;background:#28a745;color:#fff;border:none;border-radius:4px;cursor:pointer;">✅ Simulate Success</button>
+                            <button onclick="verifyUpi(false)" style="flex:1;padding:9px;background:#fff;border:1px solid #dc3545;color:#dc3545;border-radius:4px;cursor:pointer;">❌ Simulate Fail</button>
+                        </div>
+                        <div id="upiStatus" style="margin-top:8px;font-weight:700;"></div>
+                    </div>
+                </div>
+                <div id="cardBox" style="display:none;font-size:13px;color:#555;margin-top:8px;">Card sandbox — instant approval on Place Order.</div>
             </div>
         </div>
 
@@ -81,8 +99,32 @@
         document.getElementById('chkSubtotal').innerText = `$${total.toFixed(2)}`;
         document.getElementById('chkTotal').innerText = `$${total.toFixed(2)}`;
 
+        let payMethod = 'upi', upiTxn = null, upiPaid = false;
+        function togglePay(m) {
+            payMethod = m;
+            document.getElementById('upiBox').style.display = m === 'upi' ? 'block' : 'none';
+            document.getElementById('cardBox').style.display = m === 'card' ? 'block' : 'none';
+        }
+        async function makeUpiIntent() {
+            const r = await fetch(`${API}/payments/upi/intent`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ amount: total, order_id: 'draft' }) });
+            const d = await r.json();
+            upiTxn = d.txn_id; upiPaid = false;
+            document.getElementById('upiQr').style.display = 'block';
+            document.getElementById('upiUriTxt').innerHTML = `<b>${d.txn_id} · ₹${(d.amount * 83).toFixed(0)} (≈ $${d.amount.toFixed(2)})</b><br><span style="font-size:11px;">${d.upi_uri}</span><br><span style="color:#555;">Scan with any UPI app (demo intent, no money moves) or press Simulate Success.</span>`;
+            document.getElementById('upiStatus').innerText = '';
+        }
+        async function verifyUpi(ok) {
+            if (!upiTxn) return alert('Generate QR first');
+            const r = await fetch(`${API}/payments/upi/verify`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ txn_id: upiTxn, success: ok }) });
+            const d = await r.json();
+            upiPaid = d.status === 'SUCCESS';
+            document.getElementById('upiStatus').innerHTML = upiPaid ? `✅ Paid — UTR ${d.utr}` : '❌ Payment failed (simulated)';
+            document.getElementById('upiStatus').style.color = upiPaid ? '#155724' : '#721c24';
+        }
+
         async function executeCheckout() {
             const token = getAuthToken();
+            if (payMethod === 'upi' && !upiPaid) return alert('Complete UPI first: Generate QR → Simulate Success (demo). Or switch to Card.');
             const payload = {
                 items: cart.map(i => ({ product_id: i.product_id, quantity: i.quantity })),
                 shipping_address: document.getElementById('shipStreet').value,

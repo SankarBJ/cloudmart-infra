@@ -6,6 +6,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/style.css">
     <script src="/shared.js"></script>
+    <script src="/i18n.js"></script>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         .tracking-container { max-width: 900px; margin: 25px auto; padding: 0 20px; }
         .card { background: #fff; border-radius: 8px; padding: 25px; border: 1px solid #ddd; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
@@ -26,6 +30,19 @@
             <p id="orderSubtitle" style="font-size:13px; color:#555; margin-top:4px;">Real-time Telemetry & Geofenced Security</p>
 
             <div id="timelineContainer" class="timeline"></div>
+
+            <!-- LIVE COURIER MAP (UX Commerce Pack) -->
+            <div class="card" style="margin-top:18px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                    <h3 style="font-size:15px;font-weight:800;">🗺️ Live Courier Map <span style="font-size:11px;font-weight:600;color:#555;">(simulated route, S2 geofence overlay)</span></h3>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <button onclick="playRoute()" id="playBtn" style="padding:7px 14px;font-size:12px;font-weight:800;border-radius:20px;border:1px solid #007185;background:#007185;color:#fff;cursor:pointer;">▶ Play delivery</button>
+                        <button onclick="resetRoute()" style="padding:7px 14px;font-size:12px;border-radius:20px;border:1px solid #ccc;background:#fff;cursor:pointer;">Reset</button>
+                    </div>
+                </div>
+                <div id="courierMap" style="height:320px;border-radius:8px;margin-top:10px;border:1px solid #ddd;"></div>
+                <div id="mapStatus" style="font-size:12px;color:#444;margin-top:8px;">Loading route…</div>
+            </div>
 
             <!-- Capstone Innovation Box -->
             <div class="geofence-box">
@@ -106,12 +123,66 @@
             } else {
                 document.getElementById('otpDisplayCard').style.display = 'none';
             }
+            if (!map) initMap(trk);
         }
 
         function setCoords(lat, lng, label) {
             driverLat = lat;
             driverLng = lng;
             document.getElementById('telemetryBanner').innerHTML = `Active Telemetry: <strong>${label}</strong>`;
+            if (courierMarker) moveCourier(lat, lng, label);
+        }
+
+        // ---------- LIVE MAP ----------
+        let map, courierMarker, routeLine, geofenceCircle, routePts = [], routeIdx = 0, playTimer = null;
+        async function initMap(trk) {
+            try {
+                const r = await fetch(`${API}/orders/${orderId}/route?steps=14`);
+                const d = await r.json();
+                routePts = d.points || [];
+                const hub = d.hub, door = d.doorstep;
+                map = L.map('courierMap').setView([(hub.lat + door.lat) / 2, (hub.lng + door.lng) / 2], 13);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map);
+                L.marker([hub.lat, hub.lng]).addTo(map).bindPopup('🏭 ' + hub.label);
+                L.marker([door.lat, door.lng]).addTo(map).bindPopup('🏠 ' + door.label).openPopup();
+                geofenceCircle = L.circle([door.lat, door.lng], { radius: 50, color: '#007185', fillOpacity: 0.12 }).addTo(map);
+                routeLine = L.polyline(routePts.map(p => [p.lat, p.lng]), { color: '#ff9900', weight: 4 }).addTo(map);
+                courierMarker = L.marker([routePts[0].lat, routePts[0].lng]).addTo(map).bindPopup('🛵 Courier');
+                map.fitBounds(routeLine.getBounds().pad(0.25));
+                setMapStatus(0);
+            } catch (e) { document.getElementById('mapStatus').innerText = 'Map offline — timeline still works.'; }
+        }
+        function setMapStatus(i) {
+            const el = document.getElementById('mapStatus');
+            if (!routePts.length) return;
+            const last = i >= routePts.length - 1;
+            el.innerHTML = last
+                ? `✅ Courier at doorstep — <strong>inside 50m S2 geofence</strong>. Enter OTP below to complete handshake.`
+                : `🛵 Stop ${i + 1}/${routePts.length} — ETA ~${((routePts.length - 1 - i) * 1.5).toFixed(1)} min · outside geofence`;
+        }
+        function moveCourier(lat, lng, label) {
+            if (!courierMarker) return;
+            courierMarker.setLatLng([lat, lng]);
+            if (label) courierMarker.bindPopup(label).openPopup();
+        }
+        function playRoute() {
+            if (!routePts.length || playTimer) return;
+            document.getElementById('playBtn').innerText = '⏸ Playing…';
+            playTimer = setInterval(() => {
+                routeIdx++;
+                if (routeIdx >= routePts.length) { clearInterval(playTimer); playTimer = null; document.getElementById('playBtn').innerText = '▶ Replay'; routeIdx = routePts.length - 1; }
+                const p = routePts[routeIdx];
+                moveCourier(p.lat, p.lng);
+                driverLat = p.lat; driverLng = p.lng;
+                setMapStatus(routeIdx);
+                document.getElementById('telemetryBanner').innerHTML = `Active Telemetry: <strong>🛵 Live sim stop ${routeIdx + 1}/${routePts.length} (${p.lat}, ${p.lng})</strong>`;
+                if (routeIdx === routePts.length - 1) setCoords(p.lat, p.lng, '✅ Courier at Customer Doorstep (14m Away)');
+            }, 900);
+        }
+        function resetRoute() {
+            if (playTimer) { clearInterval(playTimer); playTimer = null; }
+            routeIdx = 0; document.getElementById('playBtn').innerText = '▶ Play delivery';
+            if (routePts.length) { moveCourier(routePts[0].lat, routePts[0].lng); setMapStatus(0); }
         }
 
         async function advanceStep() {
