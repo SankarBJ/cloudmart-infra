@@ -16,6 +16,10 @@
 .me{background:#ffd814;margin-left:auto}
 .bot{background:#fff;border:1px solid #ddd}
 .cite{font-size:11px;color:#007185;margin-top:6px}
+.cite a{color:#007185;font-weight:700;text-decoration:none;border-bottom:1px dotted #007185;}
+.cite a:hover{text-decoration:underline;color:#e77600;}
+.shop-btn{display:inline-block;background:#ffd814;border:1px solid #a88734;border-radius:20px;padding:6px 16px;font-size:12px;font-weight:800;color:#111;cursor:pointer;margin:6px 6px 0 0;text-decoration:none;}
+.shop-btn:hover{background:#f7ca00;}
 .ai-input{display:flex;border-top:1px solid #ddd}
 .ai-input input{flex:1;padding:13px;border:none;outline:none;font-size:14px}
 .ai-input button{background:#ff9900;border:none;padding:0 22px;font-weight:800;cursor:pointer}
@@ -45,16 +49,29 @@
 const log=document.getElementById('log');
 function bubble(t,c){const d=document.createElement('div');d.className='msg '+c;d.innerHTML=t;log.appendChild(d);log.scrollTop=log.scrollHeight;}
 function ask(t){document.getElementById('q').value=t;send();}
+function citeLink(c){
+ if(c.type==='product' && c.id) return `<a href="/product?id=${c.id}">[product] ${c.title} — $${Number(c.price||0).toFixed(2)}</a>`;
+ if(c.type==='policy'){
+  const map={shipping:'/',returns:'/orders',payment:'/checkout',tracking:'/tracking',seller:'/?cat=All'};
+  const go=map[c.id]||'/';
+  return `<a href="${go}">[policy] ${c.title}</a>`;
+ }
+ return `[${c.type}] ${c.title}`;
+}
 async function send(){
  const q=document.getElementById('q').value.trim();if(!q)return;
- document.getElementById('q').value='';bubble(q,'me');bubble('Thinking...','bot');
+ document.getElementById('q').value='';bubble(escapeHtml(q),'me');bubble('Thinking...','bot');
  try{
   const r=await fetch(API+'/ai/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:q})});
   const d=await r.json();log.removeChild(log.lastChild);
-  let h=d.answer+'<div class="cite">Grounded: '+(d.citations||[]).map(c=>'['+c.type+'] '+c.title).join(' · ')+'</div>';
+  let h=escapeHtml(d.answer)
+   .replace(/\*\*(.+?)\*\*/g,'<b>$1</b>')
+   +'<div style="margin-top:8px;">'+(d.citations||[]).filter(c=>c.type==='product'&&c.id).slice(0,3).map(c=>`<a class="shop-btn" href="/product?id=${c.id}">🛒 View ${escapeHtml(c.title.slice(0,28))}</a>`).join('')+'</div>'
+   +'<div class="cite">Grounded: '+(d.citations||[]).map(citeLink).join(' · ')+'</div>';
   bubble(h,'bot');
  }catch(e){log.removeChild(log.lastChild);bubble('AI offline — try again.','bot');}
 }
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 bubble("Hi! I'm <b>Marti</b>. Ask: 'wireless headphones under $100', 'gift for coder', 'trending', 'track my order'.",'bot');
 </script>
 </body>
