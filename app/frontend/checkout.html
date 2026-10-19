@@ -54,6 +54,7 @@
                     </div>
                     <span style="font-size:24px;">💳</span>
                 </div>
+                <div id="payStatus" style="display:none;margin-top:12px;padding:10px 14px;border-radius:6px;font-size:13px;font-weight:600;"></div>
             </div>
         </div>
 
@@ -98,8 +99,17 @@
 
         async function initiateRazorpayPayment() {
             const btn = document.getElementById('btnPay');
+            const st = document.getElementById('payStatus');
+            const show = (msg, ok) => {
+                st.style.display = 'block';
+                st.style.background = ok === true ? '#d4edda' : ok === false ? '#f8d7da' : '#fff3cd';
+                st.style.color = ok === true ? '#155724' : ok === false ? '#721c24' : '#856404';
+                st.style.border = '1px solid ' + (ok === true ? '#c3e6cb' : ok === false ? '#f5c6cb' : '#ffeeba');
+                st.innerHTML = msg;
+            };
             btn.innerText = "Opening Secure Gateway...";
             btn.disabled = true;
+            show("🔄 Contacting payment gateway… creating Razorpay order for ₹" + totalINR.toLocaleString('en-IN') + ".", null);
 
             try {
                 const res = await fetch(`${API}/payment/create-order`, {
@@ -107,9 +117,11 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ amount: totalUSD })
                 });
+                if (!res.ok) throw new Error("Gateway returned " + res.status);
                 const orderData = await res.json();
 
                 if (orderData.mode === 'live_razorpay') {
+                    show("✅ Live Razorpay order <b>" + orderData.rzp_order_id + "</b> created. Opening secure checkout…", null);
                     // Open Official Razorpay Checkout Modal
                     const options = {
                         "key": orderData.key_id,
@@ -129,17 +141,28 @@
                         }
                     };
                     const rzp = new Razorpay(options);
+                    rzp.on('payment.failed', function (resp) {
+                        show("❌ Payment failed: " + (resp.error && resp.error.description || "cancelled") + ". Try again.", false);
+                        btn.innerText = "Proceed to Payment";
+                        btn.disabled = false;
+                    });
                     rzp.open();
                 } else {
                     // Sandbox instant completion
+                    show("🧪 Sandbox mode (no Razorpay keys configured) — completing demo payment for order <b>" + orderData.rzp_order_id + "</b>…", null);
                     setTimeout(async () => {
+                        show("✅ Demo payment captured. Verifying signature & placing order…", null);
                         await verifyAndCompleteOrder("pay_sandbox_" + Math.random().toString(36).substring(2, 10), orderData.rzp_order_id, "sig_verified");
                     }, 800);
                 }
             } catch(e) {
-                alert("Payment initiation failed: " + e.message);
-                btn.innerText = "Proceed to Payment";
-                btn.disabled = false;
+                const st2 = document.getElementById('payStatus');
+                st2.style.display = 'block';
+                st2.style.background = '#f8d7da'; st2.style.color = '#721c24'; st2.style.border = '1px solid #f5c6cb';
+                st2.innerHTML = "❌ Payment initiation failed: " + (e.message || e) + ". Check backend is running, then retry.";
+                const btn2 = document.getElementById('btnPay');
+                btn2.innerText = "Proceed to Payment";
+                btn2.disabled = false;
             }
         }
 
