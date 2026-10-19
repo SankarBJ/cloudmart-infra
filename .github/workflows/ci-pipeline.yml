@@ -27,12 +27,12 @@ jobs:
 
       - name: Python Code Syntax Check
         run: |
-          python -m py_compile app/backend/app.py app/backend/ai_core.py app/backend/ai_engine.py app/backend/ai_chat.py
-          pyflakes app/backend/app.py app/backend/ai_core.py app/backend/ai_engine.py app/backend/ai_chat.py
+          python -m py_compile app/backend/app.py app/backend/ai_core.py app/backend/ai_engine.py app/backend/ai_chat.py app/backend/courier_sim.py app/backend/db_layer.py app/backend/security.py app/backend/metrics.py
+          pyflakes app/backend/app.py app/backend/ai_core.py app/backend/ai_engine.py app/backend/ai_chat.py app/backend/courier_sim.py app/backend/db_layer.py app/backend/security.py app/backend/metrics.py
 
       - name: Run AI Engine Tests
         run: |
-          python -m pytest tests/test_ai_engine.py orchestrator/tests/test_health_engine.py -v
+          USE_DB=off python -m pytest tests/test_ai_engine.py tests/test_ux_commerce.py tests/test_backend_hardening.py orchestrator/tests/test_health_engine.py -v
 
       - name: Validate Kubernetes Manifests
         run: |
