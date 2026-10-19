@@ -36,7 +36,7 @@ function renderAmazonHeaderInto(containerId, activePage = '') {
             </div>
 
             <div class="amz-search-bar">
-                <input type="text" id="globalSearchInput" placeholder="Search CloudMart products (e.g. Echo, Kindle, Backpack)..." 
+                <input type="text" id="globalSearchInput" placeholder="Search CloudMart products..." 
                        onkeyup="if(event.key==='Enter') executeSearch()">
                 <button onclick="executeSearch()">🔍</button>
             </div>
@@ -61,9 +61,11 @@ function renderAmazonHeaderInto(containerId, activePage = '') {
         </div>
 
         <div class="amz-subnav">
-            <a href="/" class="${activePage === 'home' ? 'active' : ''}">All Departments</a>
+            <a href="/">All Departments</a>
             <a href="/?cat=Electronics">Electronics</a>
             <a href="/?cat=Home%20%26%20Kitchen">Home & Kitchen</a>
+            <a href="/?cat=Office">Office</a>
+            <a href="/?cat=Fashion">Fashion</a>
             <a href="/?cat=Books">Books</a>
             <a href="/orders">Order History</a>
             <a href="/tracking">Logistics Handshake</a>
