@@ -35,11 +35,11 @@ function renderAmazonHeaderInto(containerId, activePage = '') {
                 <strong style="font-size:13px; color:#fff;">Vellore 632014</strong>
             </div>
 
-            <!-- Amazon Search Bar with Integrated Regional Voice Search -->
+            <!-- Search Bar with Explicit Microphone Button -->
             <div class="amz-search-bar">
                 <input type="text" id="globalSearchInput" placeholder="Search products or tap mic to speak..." 
                        onkeyup="if(event.key==='Enter') executeSearch()">
-                <button type="button" class="btn-mic" id="navMicBtn" title="Speak in Tamil, Hindi, or English" onclick="openVoiceSearchModal()">🎙️</button>
+                <button type="button" class="btn-mic-nav" title="Voice Search (Tamil / Hindi / English)" onclick="openVoiceSearchModal()">🎙️</button>
                 <button type="button" onclick="executeSearch()">🔍</button>
             </div>
 
@@ -71,27 +71,29 @@ function renderAmazonHeaderInto(containerId, activePage = '') {
             <a href="/?cat=Books">Books</a>
             <a href="/orders">Order History</a>
             <a href="/tracking">Logistics Handshake</a>
+            <a href="#" onclick="openVoiceSearchModal()" style="color:#febd69; font-weight:700;">🎙️ Voice Search</a>
+            <a href="/ai-chat" style="color:#ffd814; font-weight:700;">✨ Marti AI</a>
         </div>
     </header>
 
-    <!-- Regional Voice Search Modal -->
+    <!-- Regional Voice Search Listening Modal -->
     <div id="voiceModal" class="voice-modal-overlay">
         <div class="voice-card">
             <span class="voice-close-btn" onclick="closeVoiceSearchModal()">✕</span>
-            <div class="voice-pulse-circle" id="voicePulseRing">
-                <span style="font-size:36px;">🎙️</span>
+            <div class="voice-pulse-circle">
+                <span style="font-size:38px;">🎙️</span>
             </div>
-            <h3 id="voiceStatusTitle" style="font-size:18px; font-weight:700; margin-top:15px;">Listening...</h3>
-            <p id="voiceLiveTranscript" style="font-size:14px; color:#007185; min-height:45px; margin:10px 0; font-weight:600;">
-                Speak into your microphone...
+            <h3 id="voiceStatusTitle" style="font-size:17px; font-weight:700; margin-top:15px;">Listening...</h3>
+            <p id="voiceLiveTranscript" style="font-size:15px; color:#007185; min-height:45px; margin:10px 0; font-weight:600;">
+                Speak into your microphone now...
             </p>
 
             <div style="margin-top:10px; border-top:1px solid #eee; padding-top:12px;">
-                <label style="font-size:12px; font-weight:700; color:#555;">Choose Voice Language:</label>
+                <label style="font-size:12px; font-weight:700; color:#555;">Select Voice Language:</label>
                 <div style="display:flex; justify-content:center; gap:8px; margin-top:8px;">
-                    <button class="voice-lang-btn active" id="btnLangTa" onclick="setVoiceLang('ta-IN', this)">தமிழ் (Tamil)</button>
-                    <button class="voice-lang-btn" id="btnLangHi" onclick="setVoiceLang('hi-IN', this)">हिन्दी (Hindi)</button>
-                    <button class="voice-lang-btn" id="btnLangEn" onclick="setVoiceLang('en-IN', this)">English (India)</button>
+                    <button type="button" class="voice-lang-btn active" id="btnLangTa" onclick="setVoiceLang('ta-IN', this)">தமிழ் (Tamil)</button>
+                    <button type="button" class="voice-lang-btn" id="btnLangHi" onclick="setVoiceLang('hi-IN', this)">हिन्दी (Hindi)</button>
+                    <button type="button" class="voice-lang-btn" id="btnLangEn" onclick="setVoiceLang('en-IN', this)">English (India)</button>
                 </div>
             </div>
         </div>
@@ -101,7 +103,6 @@ function renderAmazonHeaderInto(containerId, activePage = '') {
     updateCartCount();
 }
 
-// ----------------- WEB SPEECH API RECOGNITION -----------------
 let activeVoiceLang = 'ta-IN';
 let speechRecognizer = null;
 
@@ -118,7 +119,7 @@ function setVoiceLang(langCode, btnEl) {
 function openVoiceSearchModal() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-        alert("Speech Recognition is not supported by your current browser. Please open in Google Chrome or Microsoft Edge.");
+        alert("Speech Recognition requires Google Chrome or Microsoft Edge. Please allow microphone access.");
         return;
     }
     const modal = document.getElementById('voiceModal');
@@ -158,11 +159,11 @@ function startListeningSession() {
     };
 
     speechRecognizer.onerror = (event) => {
-        titleEl.innerText = "Could not hear audio";
-        transcriptEl.innerText = `Error: ${event.error}. Please allow microphone permissions and try again.`;
+        titleEl.innerText = "Listening Paused";
+        transcriptEl.innerText = "Please ensure microphone permissions are granted in browser.";
     };
 
-    speechRecognizer.start();
+    try { speechRecognizer.start(); } catch(e) {}
 }
 
 async function processVoiceTranscript(rawText) {
@@ -175,11 +176,13 @@ async function processVoiceTranscript(rawText) {
         const data = await res.json();
         const searchKeyword = data.normalized_query || rawText;
 
-        document.getElementById('globalSearchInput').value = searchKeyword;
+        const inputEl = document.getElementById('globalSearchInput');
+        if (inputEl) inputEl.value = searchKeyword;
+
         setTimeout(() => {
             closeVoiceSearchModal();
             location.href = `/?search=${encodeURIComponent(searchKeyword)}`;
-        }, 800);
+        }, 700);
     } catch(e) {
         closeVoiceSearchModal();
         location.href = `/?search=${encodeURIComponent(rawText)}`;

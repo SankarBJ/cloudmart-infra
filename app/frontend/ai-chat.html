@@ -1,78 +1,163 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Marti AI Assistant | CloudMart</title>
-<link rel="stylesheet" href="/style.css">
-<script src="/shared.js"></script>
-<style>
-.ai-wrap{max-width:900px;margin:20px auto;padding:0 15px}
-.ai-card{background:#fff;border:1px solid #ddd;border-radius:10px;overflow:hidden}
-.ai-head{background:#131921;color:#fff;padding:14px 18px;font-weight:800}
-.ai-head span{color:#febd69}
-.ai-log{height:420px;overflow-y:auto;padding:16px;background:#f7f8fa}
-.msg{max-width:80%;padding:10px 13px;border-radius:10px;margin-bottom:10px;font-size:14px;line-height:1.5}
-.me{background:#ffd814;margin-left:auto}
-.bot{background:#fff;border:1px solid #ddd}
-.cite{font-size:11px;color:#007185;margin-top:6px}
-.cite a{color:#007185;font-weight:700;text-decoration:none;border-bottom:1px dotted #007185;}
-.cite a:hover{text-decoration:underline;color:#e77600;}
-.shop-btn{display:inline-block;background:#ffd814;border:1px solid #a88734;border-radius:20px;padding:6px 16px;font-size:12px;font-weight:800;color:#111;cursor:pointer;margin:6px 6px 0 0;text-decoration:none;}
-.shop-btn:hover{background:#f7ca00;}
-.ai-input{display:flex;border-top:1px solid #ddd}
-.ai-input input{flex:1;padding:13px;border:none;outline:none;font-size:14px}
-.ai-input button{background:#ff9900;border:none;padding:0 22px;font-weight:800;cursor:pointer}
-.chips{display:flex;gap:8px;flex-wrap:wrap;padding:10px 14px;background:#fff;border-top:1px solid #eee}
-.chip{background:#eef6ff;border:1px solid #cce5ff;border-radius:20px;padding:5px 12px;font-size:12px;cursor:pointer}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marti AI Assistant | CloudMart</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background: #f0f2f5; display: flex; flex-direction: column; height: 100vh; }
+        .ai-header { background: #131921; color: #fff; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .ai-header a { color: #febd69; text-decoration: none; font-size: 13px; font-weight: 700; }
+        .chat-container { flex: 1; max-width: 900px; width: 100%; margin: 15px auto; display: flex; flex-direction: column; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden; }
+        .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+        .msg { max-width: 78%; padding: 12px 16px; border-radius: 12px; font-size: 14px; line-height: 1.5; }
+        .msg.bot { background: #f0f7ff; color: #111; border-top-left-radius: 2px; border: 1px solid #d0e7ff; align-self: flex-start; }
+        .msg.user { background: #ffd814; color: #111; border-top-right-radius: 2px; align-self: flex-end; font-weight: 600; }
+        .chips-bar { display: flex; gap: 8px; padding: 10px 18px; background: #fafafa; border-top: 1px solid #eee; overflow-x: auto; }
+        .chip { padding: 6px 12px; font-size: 12px; background: #fff; border: 1px solid #ddd; border-radius: 16px; cursor: pointer; white-space: nowrap; font-weight: 600; color: #007185; }
+        .chat-input-bar { display: flex; padding: 12px 18px; background: #fff; border-top: 1px solid #ddd; gap: 10px; align-items: center; }
+        .chat-input { flex: 1; padding: 12px 16px; font-size: 14px; border: 1.5px solid #ccc; border-radius: 8px; outline: none; }
+        .chat-input:focus { border-color: #e77600; }
+        .btn-voice-ai { background: #f0f8ff; border: 1.5px solid #007185; color: #007185; width: 44px; height: 44px; border-radius: 8px; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; }
+        .btn-voice-ai.listening { background: #ffcccc; border-color: red; animation: pulseVoice 1s infinite; }
+        @keyframes pulseVoice { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        .btn-send { background: #ffa41c; color: #111; border: 1px solid #a88734; border-radius: 8px; padding: 0 22px; height: 44px; font-weight: 700; cursor: pointer; font-size: 14px; }
+        .btn-send:hover { background: #fa8900; }
+    </style>
 </head>
 <body>
-<div id="hdr"></div>
-<script>renderAmazonHeaderInto('hdr');</script>
-<div class="ai-wrap"><div class="ai-card">
-<div class="ai-head">Marti<span>.ai</span> — CloudMart Assistant ($0 offline RAG)</div>
-<div class="ai-log" id="log"></div>
-<div class="chips">
-<span class="chip" onclick="ask('wireless headphones under $100')">headphones under $100</span>
-<span class="chip" onclick="ask('gift for a coder')">gift for coder</span>
-<span class="chip" onclick="ask('show me trending')">trending</span>
-<span class="chip" onclick="ask('track my order')">track order</span>
-<span class="chip" onclick="ask('return policy')">returns?</span>
-</div>
-<div class="ai-input">
-<input id="q" placeholder="Ask Marti: products, budgets, policies..." onkeyup="if(event.key==='Enter')send()">
-<button onclick="send()">Ask</button>
-</div>
-</div></div>
-<script>
-const log=document.getElementById('log');
-function bubble(t,c){const d=document.createElement('div');d.className='msg '+c;d.innerHTML=t;log.appendChild(d);log.scrollTop=log.scrollHeight;}
-function ask(t){document.getElementById('q').value=t;send();}
-function citeLink(c){
- if(c.type==='product' && c.id) return `<a href="/product?id=${c.id}">[product] ${c.title} — $${Number(c.price||0).toFixed(2)}</a>`;
- if(c.type==='policy'){
-  const map={shipping:'/',returns:'/orders',payment:'/checkout',tracking:'/tracking',seller:'/?cat=All'};
-  const go=map[c.id]||'/';
-  return `<a href="${go}">[policy] ${c.title}</a>`;
- }
- return `[${c.type}] ${c.title}`;
-}
-async function send(){
- const q=document.getElementById('q').value.trim();if(!q)return;
- document.getElementById('q').value='';bubble(escapeHtml(q),'me');bubble('Thinking...','bot');
- try{
-  const r=await fetch(API+'/ai/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:q})});
-  const d=await r.json();log.removeChild(log.lastChild);
-  let h=escapeHtml(d.answer)
-   .replace(/\*\*(.+?)\*\*/g,'<b>$1</b>')
-   +'<div style="margin-top:8px;">'+(d.citations||[]).filter(c=>c.type==='product'&&c.id).slice(0,3).map(c=>`<a class="shop-btn" href="/product?id=${c.id}">🛒 View ${escapeHtml(c.title.slice(0,28))}</a>`).join('')+'</div>'
-   +'<div class="cite">Grounded: '+(d.citations||[]).map(citeLink).join(' · ')+'</div>';
-  bubble(h,'bot');
- }catch(e){log.removeChild(log.lastChild);bubble('AI offline — try again.','bot');}
-}
-function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
-bubble("Hi! I'm <b>Marti</b>. Ask: 'wireless headphones under $100', 'gift for coder', 'trending', 'track my order'.",'bot');
-</script>
+    <div class="ai-header">
+        <div style="font-size:18px; font-weight:800; color:#fff;">Marti.ai — <span style="color:#febd69;">CloudMart RAG Assistant</span></div>
+        <a href="/">← Back to Store</a>
+    </div>
+
+    <div class="chat-container">
+        <div class="chat-messages" id="chatBox">
+            <div class="msg bot">
+                👋 Hi! I'm <strong>Marti</strong>, your CloudMart AI Assistant. You can type below or <strong>tap the 🎙️ mic button</strong> to ask questions in <strong>Tamil, Hindi, or English</strong> (e.g. <em>"headphones under $100 kaattu"</em> or <em>"gift for coder"</em>).
+            </div>
+        </div>
+
+        <div class="chips-bar">
+            <div class="chip" onclick="sendChipQuery('wireless headphones under $100')">headphones under $100</div>
+            <div class="chip" onclick="sendChipQuery('gift for coder')">gift for coder</div>
+            <div class="chip" onclick="sendChipQuery('trending electronics')">trending</div>
+            <div class="chip" onclick="sendChipQuery('track my order')">track order</div>
+            <div class="chip" onclick="sendChipQuery('return policy')">returns?</div>
+        </div>
+
+        <div class="chat-input-bar">
+            <input type="text" id="userInput" class="chat-input" placeholder="Ask Marti or tap the mic to speak..." onkeyup="if(event.key==='Enter') executeChat()">
+            <button type="button" class="btn-voice-ai" id="aiMicBtn" title="Speak to Marti AI (Tamil / Hindi / English)" onclick="toggleAiVoice()">🎙️</button>
+            <button class="btn-send" onclick="executeChat()">Ask</button>
+        </div>
+    </div>
+
+    <script>
+        const chatBox = document.getElementById('chatBox');
+        let aiRecognizer = null;
+        let isAiListening = false;
+
+        function sendChipQuery(txt) {
+            document.getElementById('userInput').value = txt;
+            executeChat();
+        }
+
+        async function executeChat() {
+            const input = document.getElementById('userInput');
+            const query = input.value.trim();
+            if (!query) return;
+
+            chatBox.innerHTML += `<div class="msg user">${escapeHtml(query)}</div>`;
+            input.value = '';
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            const loadingId = 'load_' + Date.now();
+            chatBox.innerHTML += `<div class="msg bot" id="${loadingId}">Thinking...</div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                const res = await fetch('/api/ai/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: query })
+                });
+                const data = await res.json();
+                const loadEl = document.getElementById(loadingId);
+                if (loadEl) loadEl.remove();
+
+                const answer = data.answer || data.response || "Here are matching recommendations from our store:";
+                chatBox.innerHTML += `<div class="msg bot">${formatAiReply(answer, data.products)}</div>`;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            } catch(e) {
+                const loadEl = document.getElementById(loadingId);
+                if (loadEl) loadEl.innerHTML = `I found matching products in our catalog. <a href="/?search=${encodeURIComponent(query)}" style="color:#007185; font-weight:bold;">Click here to view results</a>.`;
+            }
+        }
+
+        function formatAiReply(text, products) {
+            let html = text.replace(/\n/g, '<br>');
+            if (products && products.length) {
+                html += `<div style="margin-top:10px; border-top:1px solid #ddd; padding-top:8px;"><strong>Matching Products:</strong><br>`;
+                products.forEach(p => {
+                    html += `• <a href="/product?id=${p.id}" style="color:#007185; font-weight:600;">${p.name} ($${p.price})</a><br>`;
+                });
+                html += `</div>`;
+            }
+            return html;
+        }
+
+        function toggleAiVoice() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) return alert("Please open in Google Chrome or Edge for voice input.");
+
+            const micBtn = document.getElementById('aiMicBtn');
+            const input = document.getElementById('userInput');
+
+            if (isAiListening && aiRecognizer) {
+                aiRecognizer.stop();
+                isAiListening = false;
+                micBtn.classList.remove('listening');
+                return;
+            }
+
+            aiRecognizer = new SpeechRecognition();
+            aiRecognizer.lang = 'ta-IN'; // Supports regional input
+            aiRecognizer.interimResults = true;
+
+            aiRecognizer.onstart = () => {
+                isAiListening = true;
+                micBtn.classList.add('listening');
+                input.placeholder = "Listening in Tamil / English... பேசுங்கள்...";
+            };
+
+            aiRecognizer.onresult = (e) => {
+                let trans = '';
+                for (let i = e.resultIndex; i < e.results.length; ++i) {
+                    trans += e.results[i][0].transcript;
+                }
+                input.value = trans;
+                if (e.results[0].isFinal) {
+                    isAiListening = false;
+                    micBtn.classList.remove('listening');
+                    input.placeholder = "Ask Marti: products, budgets, policies...";
+                    executeChat();
+                }
+            };
+
+            aiRecognizer.onerror = () => {
+                isAiListening = false;
+                micBtn.classList.remove('listening');
+                input.placeholder = "Ask Marti: products, budgets, policies...";
+            };
+
+            aiRecognizer.start();
+        }
+
+        function escapeHtml(t) { return t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+    </script>
 </body>
 </html>

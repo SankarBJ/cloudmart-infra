@@ -104,3 +104,73 @@ body { background-color: var(--bg-gray); color: #0f1111; min-height: 100vh; }
     color: #fff;
     border-color: #007185;
 }
+
+/* Microphone Button Inside Amazon Search Bar */
+.btn-mic-nav {
+    background: #fff;
+    border: none;
+    padding: 0 10px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.btn-mic-nav:hover { background: #f2f2f2; }
+
+/* Voice Modal Overlay */
+.voice-modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1200;
+}
+.voice-card {
+    background: #fff;
+    width: 90%;
+    max-width: 440px;
+    border-radius: 12px;
+    padding: 30px 20px;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+.voice-close-btn {
+    position: absolute;
+    top: 14px; right: 18px;
+    font-size: 20px;
+    cursor: pointer;
+    color: #555;
+}
+.voice-pulse-circle {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    background: #eef7ff;
+    border: 3px solid #007185;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    animation: voiceRingAnim 1.4s infinite ease-out;
+}
+@keyframes voiceRingAnim {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 113, 133, 0.6); }
+    70% { transform: scale(1.05); box-shadow: 0 0 0 18px rgba(0, 113, 133, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 113, 133, 0); }
+}
+.voice-lang-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    border: 1px solid #ccc;
+    background: #f8f9fa;
+    border-radius: 20px;
+    cursor: pointer;
+}
+.voice-lang-btn.active {
+    background: #007185;
+    color: #fff;
+    border-color: #007185;
+}
