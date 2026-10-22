@@ -1,186 +1,160 @@
-:root {
-    --nav-bg: #131921;
-    --subnav-bg: #232f3e;
-    --accent-orange: #febd69;
-    --btn-orange: #ffd814;
-    --btn-buy-now: #ffa41c;
-    --link-blue: #007185;
-    --price-red: #b12704;
-    --bg-gray: #eaeded;
+/* =========================================================
+   CloudMart - Amazon-Style Unified Stylesheet
+   ========================================================= */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-body { background-color: var(--bg-gray); color: #0f1111; min-height: 100vh; }
-
-.amz-header { background: var(--nav-bg); color: #fff; position: sticky; top: 0; z-index: 100; }
-.amz-nav-top { display: flex; align-items: center; justify-content: space-between; padding: 10px 18px; gap: 15px; }
-.amz-logo { font-size: 22px; font-weight: 800; color: #fff; text-decoration: none; cursor: pointer; }
-.amz-logo span { color: var(--accent-orange); }
-
-.amz-deliver-box { display: flex; flex-direction: column; cursor: pointer; }
-.amz-search-bar { flex: 1; max-width: 750px; display: flex; height: 40px; border-radius: 4px; overflow: hidden; }
-.amz-search-bar input { flex: 1; border: none; padding: 0 12px; font-size: 15px; outline: none; }
-.amz-search-bar button { background: var(--accent-orange); border: none; width: 45px; cursor: pointer; font-size: 16px; }
-
-.amz-nav-actions { display: flex; align-items: center; gap: 18px; }
-.amz-nav-link { color: #fff; text-decoration: none; display: flex; flex-direction: column; cursor: pointer; }
-.amz-cart-btn { display: flex; align-items: center; gap: 5px; cursor: pointer; text-decoration: none; position: relative; }
-.amz-cart-badge { background: var(--btn-buy-now); color: #111; font-weight: 800; font-size: 14px; padding: 1px 7px; border-radius: 12px; }
-
-.amz-subnav { background: var(--subnav-bg); padding: 8px 18px; display: flex; gap: 18px; font-size: 13px; font-weight: 500; }
-.amz-subnav a { color: #fff; text-decoration: none; }
-.amz-subnav a:hover, .amz-subnav a.active { color: var(--accent-orange); }
-
-.btn-checkout { background: var(--btn-buy-now); border: 1px solid #a88734; border-radius: 8px; padding: 10px; font-weight: 700; width: 100%; cursor: pointer; text-align: center; }
-.btn-checkout:hover { background: #fa8900; }
-.btn-add-cart { background: var(--btn-orange); border: 1px solid #a88734; border-radius: 8px; padding: 10px; font-weight: 700; width: 100%; cursor: pointer; text-align: center; }
-
-/* Regional Voice Search UI Elements */
-.btn-mic {
-    background: #fff;
-    border: none;
-    padding: 0 10px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-.btn-mic:hover { background: #f0f0f0; }
-
-.voice-modal-overlay {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 1200;
-}
-.voice-card {
-    background: #fff;
-    width: 90%;
-    max-width: 440px;
-    border-radius: 12px;
-    padding: 30px 20px;
-    text-align: center;
-    position: relative;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-}
-.voice-close-btn {
-    position: absolute;
-    top: 14px; right: 18px;
-    font-size: 20px;
-    cursor: pointer;
-    color: #555;
-}
-.voice-pulse-circle {
-    width: 80px; height: 80px;
-    border-radius: 50%;
-    background: #eef7ff;
-    border: 3px solid #007185;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto;
-    animation: voiceRings 1.4s infinite ease-out;
-}
-@keyframes voiceRings {
-    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 113, 133, 0.6); }
-    70% { transform: scale(1.05); box-shadow: 0 0 0 18px rgba(0, 113, 133, 0); }
-    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 113, 133, 0); }
-}
-.voice-lang-btn {
-    padding: 6px 12px;
-    font-size: 12px;
-    font-weight: 700;
-    border: 1px solid #ccc;
-    background: #f8f9fa;
-    border-radius: 20px;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-.voice-lang-btn.active {
-    background: #007185;
-    color: #fff;
-    border-color: #007185;
+body {
+  font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+  background-color: #eaeded;
+  color: #0f1111;
+  min-height: 100vh;
 }
 
-/* Microphone Button Inside Amazon Search Bar */
-.btn-mic-nav {
-    background: #fff;
-    border: none;
-    padding: 0 10px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-.btn-mic-nav:hover { background: #f2f2f2; }
-
-/* Voice Modal Overlay */
-.voice-modal-overlay {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 1200;
-}
-.voice-card {
-    background: #fff;
-    width: 90%;
-    max-width: 440px;
-    border-radius: 12px;
-    padding: 30px 20px;
-    text-align: center;
-    position: relative;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-}
-.voice-close-btn {
-    position: absolute;
-    top: 14px; right: 18px;
-    font-size: 20px;
-    cursor: pointer;
-    color: #555;
-}
-.voice-pulse-circle {
-    width: 80px; height: 80px;
-    border-radius: 50%;
-    background: #eef7ff;
-    border: 3px solid #007185;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto;
-    animation: voiceRingAnim 1.4s infinite ease-out;
-}
-@keyframes voiceRingAnim {
-    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 113, 133, 0.6); }
-    70% { transform: scale(1.05); box-shadow: 0 0 0 18px rgba(0, 113, 133, 0); }
-    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 113, 133, 0); }
-}
-.voice-lang-btn {
-    padding: 6px 12px;
-    font-size: 12px;
-    font-weight: 700;
-    border: 1px solid #ccc;
-    background: #f8f9fa;
-    border-radius: 20px;
-    cursor: pointer;
-}
-.voice-lang-btn.active {
-    background: #007185;
-    color: #fff;
-    border-color: #007185;
+.bg-gray {
+  background-color: #eaeded;
 }
 
-/* English Voice Search & Mic Button Styles */
-.nav-mic-btn {
-  background: #f3f3f3;
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* =========================================================
+   Top Navigation Bar (Amazon #131921 Dark Navy)
+   ========================================================= */
+.navbar {
+  background-color: #131921;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 16px;
+  height: 60px;
+  gap: 16px;
+}
+
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.nav-logo {
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  display: flex;
+  align-items: baseline;
+  padding: 4px 6px;
+  border: 1px solid transparent;
+  border-radius: 2px;
+}
+
+.nav-logo:hover {
+  border-color: #ffffff;
+}
+
+.logo-bold {
+  color: #ffffff;
+}
+
+.logo-orange {
+  color: #ff9900;
+}
+
+.logo-domain {
+  font-size: 0.75rem;
+  color: #cccccc;
+  margin-left: 1px;
+}
+
+.nav-deliver-to {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 6px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-radius: 2px;
+}
+
+.nav-deliver-to:hover {
+  border-color: #ffffff;
+}
+
+.nav-line-1 {
+  font-size: 11px;
+  color: #cccccc;
+  line-height: 1.1;
+}
+
+.nav-line-2 {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.2;
+}
+
+/* =========================================================
+   Center Search Bar with Inline English Mic
+   ========================================================= */
+.nav-center {
+  flex: 1;
+  max-width: 820px;
+  margin: 0 8px;
+}
+
+.nav-search-form {
+  display: flex;
+  height: 40px;
+  border-radius: 4px;
+  overflow: hidden;
+  background-color: #ffffff;
+  border: 2px solid transparent;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.nav-search-form:focus-within {
+  border-color: #ff9900;
+  box-shadow: 0 0 0 3px rgba(255, 153, 0, 0.4);
+}
+
+.nav-search-dropdown {
+  background-color: #e6e6e6;
   border: none;
-  font-size: 1.15rem;
+  border-right: 1px solid #cccccc;
   padding: 0 10px;
+  font-size: 12px;
+  color: #333333;
+  cursor: pointer;
+  outline: none;
+  height: 100%;
+}
+
+.nav-search-dropdown:hover {
+  background-color: #dadada;
+}
+
+.nav-search-input {
+  flex: 1;
+  border: none;
+  padding: 0 12px;
+  font-size: 14px;
+  color: #111111;
+  outline: none;
+  min-width: 100px;
+}
+
+.nav-mic-btn {
+  background-color: #ffffff;
+  border: none;
+  border-left: 1px solid #eeeeee;
+  padding: 0 12px;
+  font-size: 1.2rem;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -189,55 +163,602 @@ body { background-color: var(--bg-gray); color: #0f1111; min-height: 100vh; }
 }
 
 .nav-mic-btn:hover {
-  background: #e2e2e2;
+  background-color: #f3f3f3;
 }
 
 .nav-mic-btn.listening, .chat-mic-btn.listening {
-  background: #ff4d4f !important;
-  color: #fff !important;
+  background-color: #ff4d4f !important;
+  color: #ffffff !important;
   animation: pulse-ring 1.2s infinite ease-in-out;
 }
 
 @keyframes pulse-ring {
   0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 77, 79, 0.7); }
-  70% { transform: scale(1.08); box-shadow: 0 0 0 10px rgba(255, 77, 79, 0); }
+  70% { transform: scale(1.08); box-shadow: 0 0 0 8px rgba(255, 77, 79, 0); }
   100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 77, 79, 0); }
 }
 
-.chat-container {
-  max-width: 900px;
-  margin: 30px auto;
-  background: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+.nav-search-btn {
+  background-color: #febd69;
+  border: none;
+  width: 45px;
+  font-size: 1.15rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.nav-search-btn:hover {
+  background-color: #f3a847;
+}
+
+/* =========================================================
+   Right Navigation Links
+   ========================================================= */
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.nav-lang-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 8px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-radius: 2px;
+}
+
+.nav-lang-badge:hover {
+  border-color: #ffffff;
+}
+
+.nav-link {
   display: flex;
   flex-direction: column;
-  min-height: 650px;
+  padding: 4px 6px;
+  border: 1px solid transparent;
+  border-radius: 2px;
+}
+
+.nav-link:hover {
+  border-color: #ffffff;
+}
+
+.nav-cart-link {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 2px;
+  position: relative;
+  padding-bottom: 2px;
+}
+
+.nav-cart-icon {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.nav-cart-count {
+  position: absolute;
+  top: 1px;
+  left: 17px;
+  color: #f08804;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.cart-text {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.nav-btn-logout, .nav-btn-signin {
+  background-color: #febd69;
+  border: 1px solid #a88734;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #111111;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.nav-btn-logout:hover, .nav-btn-signin:hover {
+  background-color: #f3a847;
+}
+
+/* =========================================================
+   Sub-navigation Bar (Dark Blue #232f3e Belt)
+   ========================================================= */
+.subnav {
+  background-color: #232f3e;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 16px;
+  height: 38px;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.subnav-link {
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 500;
+  padding: 5px 8px;
+  border: 1px solid transparent;
+  border-radius: 2px;
+}
+
+.subnav-link:hover {
+  border-color: #ffffff;
+}
+
+.subnav-spacer {
+  flex: 1;
+}
+
+.nav-highlight {
+  color: #febd69 !important;
+  font-weight: 700 !important;
+}
+
+.seller-switch {
+  color: #febd69;
+  font-weight: 600;
+  border: 1px solid #febd69;
+  padding: 4px 10px;
+  border-radius: 3px;
+}
+
+.seller-switch:hover {
+  background-color: rgba(254, 189, 105, 0.15);
+}
+
+/* =========================================================
+   Marti AI Chat Container
+   ========================================================= */
+.chat-container {
+  max-width: 960px;
+  margin: 20px auto;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 130px);
+  min-height: 580px;
   overflow: hidden;
 }
 
 .chat-header-banner {
   display: flex;
   align-items: center;
-  gap: 15px;
-  background: #232f3e;
+  gap: 16px;
+  background-color: #232f3e;
   color: #ffffff;
-  padding: 16px 24px;
+  padding: 14px 20px;
 }
 
 .chat-avatar-badge {
   font-size: 2.2rem;
-  background: #37475a;
+  background-color: #37475a;
   border-radius: 50%;
-  width: 52px;
-  height: 52px;
+  width: 50px;
+  height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .chat-title-group h1 {
-  font-size: 1.3rem;
+  font-size: 1.25rem;
+  margin: 0 0 4px 0;
+  color: #febd69;
+}
+
+.chat-title-group p {
+  font-size: 0.85rem;
+  margin: 0;
+  color: #cccccc;
+}
+
+.chat-voice-toggle {
+  margin-left: auto;
+  font-size: 0.85rem;
+  color: #ffffff;
+}
+
+.chat-voice-toggle label {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chat-quick-chips {
+cd ~/cloudmart-infra 2>/dev/null || cd /c/Users/Shankar/cloudmart-infra 2>/dev/null || cd /c/Users/Shankar/OneDrive/Documents/cloudmart-infra 2>/dev/null || cd /d/cloudmart-infra 2>/dev/null || cd "$(pwd)"
+
+echo "==> Restoring complete Amazon navigation and Marti AI stylesheet..."
+
+cat << 'EOF' > app/frontend/style.css
+/* =========================================================
+   CloudMart - Amazon-Style Unified Stylesheet
+   ========================================================= */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+  background-color: #eaeded;
+  color: #0f1111;
+  min-height: 100vh;
+}
+
+.bg-gray {
+  background-color: #eaeded;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* =========================================================
+   Top Navigation Bar (Amazon #131921 Dark Navy)
+   ========================================================= */
+.navbar {
+  background-color: #131921;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 16px;
+  height: 60px;
+  gap: 16px;
+}
+
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.nav-logo {
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  display: flex;
+  align-items: baseline;
+  padding: 4px 6px;
+  border: 1px solid transparent;
+  border-radius: 2px;
+}
+
+.nav-logo:hover {
+  border-color: #ffffff;
+}
+
+.logo-bold {
+  color: #ffffff;
+}
+
+.logo-orange {
+  color: #ff9900;
+}
+
+.logo-domain {
+  font-size: 0.75rem;
+  color: #cccccc;
+  margin-left: 1px;
+}
+
+.nav-deliver-to {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 6px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-radius: 2px;
+}
+
+.nav-deliver-to:hover {
+  border-color: #ffffff;
+}
+
+.nav-line-1 {
+  font-size: 11px;
+  color: #cccccc;
+  line-height: 1.1;
+}
+
+.nav-line-2 {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.2;
+}
+
+/* =========================================================
+   Center Search Bar with Inline English Mic
+   ========================================================= */
+.nav-center {
+  flex: 1;
+  max-width: 820px;
+  margin: 0 8px;
+}
+
+.nav-search-form {
+  display: flex;
+  height: 40px;
+  border-radius: 4px;
+  overflow: hidden;
+  background-color: #ffffff;
+  border: 2px solid transparent;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.nav-search-form:focus-within {
+  border-color: #ff9900;
+  box-shadow: 0 0 0 3px rgba(255, 153, 0, 0.4);
+}
+
+.nav-search-dropdown {
+  background-color: #e6e6e6;
+  border: none;
+  border-right: 1px solid #cccccc;
+  padding: 0 10px;
+  font-size: 12px;
+  color: #333333;
+  cursor: pointer;
+  outline: none;
+  height: 100%;
+}
+
+.nav-search-dropdown:hover {
+  background-color: #dadada;
+}
+
+.nav-search-input {
+  flex: 1;
+  border: none;
+  padding: 0 12px;
+  font-size: 14px;
+  color: #111111;
+  outline: none;
+  min-width: 100px;
+}
+
+.nav-mic-btn {
+  background-color: #ffffff;
+  border: none;
+  border-left: 1px solid #eeeeee;
+  padding: 0 12px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.nav-mic-btn:hover {
+  background-color: #f3f3f3;
+}
+
+.nav-mic-btn.listening, .chat-mic-btn.listening {
+  background-color: #ff4d4f !important;
+  color: #ffffff !important;
+  animation: pulse-ring 1.2s infinite ease-in-out;
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 77, 79, 0.7); }
+  70% { transform: scale(1.08); box-shadow: 0 0 0 8px rgba(255, 77, 79, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 77, 79, 0); }
+}
+
+.nav-search-btn {
+  background-color: #febd69;
+  border: none;
+  width: 45px;
+  font-size: 1.15rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.nav-search-btn:hover {
+  background-color: #f3a847;
+}
+
+/* =========================================================
+   Right Navigation Links
+   ========================================================= */
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.nav-lang-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 8px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-radius: 2px;
+}
+
+.nav-lang-badge:hover {
+  border-color: #ffffff;
+}
+
+.nav-link {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 6px;
+  border: 1px solid transparent;
+  border-radius: 2px;
+}
+
+.nav-link:hover {
+  border-color: #ffffff;
+}
+
+.nav-cart-link {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 2px;
+  position: relative;
+  padding-bottom: 2px;
+}
+
+.nav-cart-icon {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.nav-cart-count {
+  position: absolute;
+  top: 1px;
+  left: 17px;
+  color: #f08804;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.cart-text {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.nav-btn-logout, .nav-btn-signin {
+  background-color: #febd69;
+  border: 1px solid #a88734;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #111111;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.nav-btn-logout:hover, .nav-btn-signin:hover {
+  background-color: #f3a847;
+}
+
+/* =========================================================
+   Sub-navigation Bar (Dark Blue #232f3e Belt)
+   ========================================================= */
+.subnav {
+  background-color: #232f3e;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 16px;
+  height: 38px;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.subnav-link {
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 500;
+  padding: 5px 8px;
+  border: 1px solid transparent;
+  border-radius: 2px;
+}
+
+.subnav-link:hover {
+  border-color: #ffffff;
+}
+
+.subnav-spacer {
+  flex: 1;
+}
+
+.nav-highlight {
+  color: #febd69 !important;
+  font-weight: 700 !important;
+}
+
+.seller-switch {
+  color: #febd69;
+  font-weight: 600;
+  border: 1px solid #febd69;
+  padding: 4px 10px;
+  border-radius: 3px;
+}
+
+.seller-switch:hover {
+  background-color: rgba(254, 189, 105, 0.15);
+}
+
+/* =========================================================
+   Marti AI Chat Container
+   ========================================================= */
+.chat-container {
+  max-width: 960px;
+  margin: 20px auto;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 130px);
+  min-height: 580px;
+  overflow: hidden;
+}
+
+.chat-header-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background-color: #232f3e;
+  color: #ffffff;
+  padding: 14px 20px;
+}
+
+.chat-avatar-badge {
+  font-size: 2.2rem;
+  background-color: #37475a;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.chat-title-group h1 {
+  font-size: 1.25rem;
   margin: 0 0 4px 0;
   color: #febd69;
 }
@@ -264,14 +785,14 @@ body { background-color: var(--bg-gray); color: #0f1111; min-height: 100vh; }
 .chat-quick-chips {
   display: flex;
   gap: 8px;
-  padding: 12px 20px;
-  background: #f7f7f7;
+  padding: 12px 16px;
+  background-color: #f7f7f7;
   border-bottom: 1px solid #e7e7e7;
   overflow-x: auto;
 }
 
 .chat-quick-chips .chip {
-  background: #ffffff;
+  background-color: #ffffff;
   border: 1px solid #d5d9d9;
   border-radius: 20px;
   padding: 6px 14px;
@@ -279,10 +800,11 @@ body { background-color: var(--bg-gray); color: #0f1111; min-height: 100vh; }
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.2s;
+  color: #0f1111;
 }
 
 .chat-quick-chips .chip:hover {
-  background: #f0f2f2;
+  background-color: #f0f2f2;
   border-color: #007185;
 }
 
@@ -293,7 +815,7 @@ body { background-color: var(--bg-gray); color: #0f1111; min-height: 100vh; }
   display: flex;
   flex-direction: column;
   gap: 16px;
-  background: #fafafa;
+  background-color: #fafafa;
 }
 
 .msg {
@@ -318,13 +840,13 @@ body { background-color: var(--bg-gray); color: #0f1111; min-height: 100vh; }
 }
 
 .user-msg .msg-bubble {
-  background: #febd69;
+  background-color: #febd69;
   color: #111111;
   border-bottom-right-radius: 2px;
 }
 
 .bot-msg .msg-bubble {
-  background: #ffffff;
+  background-color: #ffffff;
   color: #111111;
   border: 1px solid #e7e7e7;
   border-bottom-left-radius: 2px;
@@ -334,8 +856,8 @@ body { background-color: var(--bg-gray); color: #0f1111; min-height: 100vh; }
 .chat-input-bar {
   display: flex;
   gap: 10px;
-  padding: 16px 20px;
-  background: #ffffff;
+  padding: 14px 20px;
+  background-color: #ffffff;
   border-top: 1px solid #e7e7e7;
 }
 
@@ -354,26 +876,31 @@ body { background-color: var(--bg-gray); color: #0f1111; min-height: 100vh; }
 }
 
 .chat-mic-btn {
-  background: #f0f2f2;
+  background-color: #f0f2f2;
   border: 1px solid #d5d9d9;
   border-radius: 6px;
   padding: 0 16px;
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   cursor: pointer;
   transition: all 0.2s;
 }
 
+.chat-mic-btn:hover {
+  background-color: #e2e2e2;
+}
+
 .chat-send-btn {
-  background: #ffd814;
+  background-color: #ffd814;
   border: 1px solid #fcd200;
   border-radius: 6px;
-  padding: 0 20px;
+  padding: 0 22px;
   font-weight: 600;
+  font-size: 0.95rem;
   cursor: pointer;
 }
 
 .chat-send-btn:hover {
-  background: #f7ca00;
+  background-color: #f7ca00;
 }
 
 .chat-product-grid {
@@ -387,7 +914,7 @@ body { background-color: var(--bg-gray); color: #0f1111; min-height: 100vh; }
   border: 1px solid #e7e7e7;
   border-radius: 6px;
   padding: 8px;
-  background: #ffffff;
+  background-color: #ffffff;
   display: flex;
   flex-direction: column;
   align-items: center;
