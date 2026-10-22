@@ -27,6 +27,8 @@ services:
       DB_PASS: cloudmart_password
       DB_PORT: 5432
       JWT_SECRET: cloudmart-secure-jwt-dev-secret-key-32chars!
+      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID:-rzp_test_placeholder}
+      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET:-secret_placeholder}
     ports:
       - "5000:5000"
     depends_on:

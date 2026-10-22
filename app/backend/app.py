@@ -745,6 +745,48 @@ def rzp_verify_signature():
 
     return jsonify({"verified": True, "payment_id": rzp_payment_id or f"pay_{secrets.token_hex(8)}"}), 200
 
+
+# ----------------- REGIONAL MULTILINGUAL VOICE SEARCH -----------------
+REGIONAL_STOPWORDS = {
+    # Tamil conversational verbs & particles
+    "kaattu", "kattu", "venum", "paakanum", "kodu", "oru", "enakku", "irukka", "thevai", "eduthukitu",
+    # Hindi conversational verbs & particles
+    "dikhao", "dikhaye", "chahiye", "dhundo", "batao", "mujhe", "kripya", "karo", "ek",
+    # English conversational fillers
+    "show", "me", "find", "search", "for", "i", "want", "need", "give", "buy", "get", "please"
+}
+
+@app.route("/api/voice-search", methods=["POST"])
+def voice_search_endpoint():
+    data = request.get_json() or {}
+    raw_transcript = data.get("transcript", "").strip()
+    lang = data.get("lang", "en-IN")
+
+    if not raw_transcript:
+        return jsonify({"query": "", "products": []}), 200
+
+    # Tokenize and clean conversational regional filler words
+    words = raw_transcript.split()
+    cleaned_tokens = [w for w in words if w.lower() not in REGIONAL_STOPWORDS]
+    normalized_query = " ".join(cleaned_tokens).strip() or raw_transcript
+
+    # Query catalog using normalized keyword
+    filtered = list(DEMO_PRODUCTS)
+    filtered = [
+        p for p in filtered 
+        if normalized_query.lower() in p["name"].lower() 
+        or normalized_query.lower() in p["category"].lower() 
+        or normalized_query.lower() in p.get("description", "").lower()
+    ]
+
+    return jsonify({
+        "raw_transcript": raw_transcript,
+        "normalized_query": normalized_query,
+        "detected_language": lang,
+        "match_count": len(filtered),
+        "products": filtered
+    }), 200
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
