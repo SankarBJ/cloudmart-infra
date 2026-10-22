@@ -1,76 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>CloudMart Sign-In</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        body { background: #fff; display: flex; flex-direction: column; align-items: center; padding: 35px 15px; }
-        .logo { font-size: 28px; font-weight: 800; color: #111; text-decoration: none; margin-bottom: 20px; }
-        .logo span { color: #febd69; }
-        .card { width: 100%; max-width: 360px; border: 1px solid #ddd; border-radius: 8px; padding: 25px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        h1 { font-size: 24px; font-weight: 700; margin-bottom: 15px; }
-        label { display: block; font-size: 13px; font-weight: 600; margin-top: 12px; margin-bottom: 4px; }
-        input { width: 100%; padding: 9px; font-size: 14px; border: 1px solid #a6a6a6; border-radius: 4px; outline: none; }
-        input:focus { border-color: #e77600; box-shadow: 0 0 3px 2px rgba(228,121,17,.5); }
-        .btn-signin { width: 100%; background: #ffd814; border: 1px solid #a88734; border-radius: 8px; padding: 10px; font-size: 14px; font-weight: 700; margin-top: 18px; cursor: pointer; }
-        .btn-signin:hover { background: #f7ca00; }
-        .error-box { background: #fff0f0; border: 1px solid #ffcccc; color: #cc0000; padding: 8px 12px; border-radius: 4px; font-size: 13px; margin-bottom: 12px; display: none; }
-        .new-account-btn { width: 100%; background: #fff; border: 1px solid #888; border-radius: 8px; padding: 9px; font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 10px; text-align: center; text-decoration: none; display: block; color: #111; }
-    </style>
+  <meta charset="UTF-8">
+  <title>Amazon Sign-In - CloudMart</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/style.css?v=v5_all_fix">
+  <style>
+    .auth-page { display: flex; flex-direction: column; align-items: center; padding-top: 24px; min-height: 100vh; background: #ffffff; }
+    .auth-logo { font-size: 2rem; font-weight: 800; margin-bottom: 20px; text-decoration: none; color: #131921; }
+    .auth-logo span { color: #ff9900; }
+    .auth-box { width: 350px; padding: 24px 26px; border: 1px solid #d5d9d9; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    .auth-tabs { display: flex; border-bottom: 2px solid #e7e7e7; margin-bottom: 20px; }
+    .auth-tab { flex: 1; text-align: center; padding: 10px 0; font-weight: 600; font-size: 0.95rem; cursor: pointer; color: #555; text-decoration: none; }
+    .auth-tab.active { color: #111; border-bottom: 3px solid #e77600; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 5px; color: #111; }
+    .form-group input { width: 100%; padding: 8px 10px; border: 1px solid #a6a6a6; border-radius: 4px; font-size: 0.9rem; box-sizing: border-box; }
+    .form-group input:focus { border-color: #e77600; box-shadow: 0 0 3px 2px rgba(228,121,17,.5); outline: none; }
+    .btn-auth-submit { width: 100%; background: #ffd814; border: 1px solid #fcd200; border-radius: 8px; padding: 9px; font-size: 0.9rem; font-weight: 600; cursor: pointer; margin-top: 10px; }
+    .btn-auth-submit:hover { background: #f7ca00; }
+    .auth-error { background: #fff8f7; border: 1px solid #cc0c39; border-radius: 4px; padding: 10px 14px; color: #cc0c39; font-size: 0.85rem; margin-bottom: 14px; line-height: 1.35; }
+    .auth-footer { font-size: 0.75rem; color: #555; text-align: center; margin-top: 30px; }
+    .demo-creds { margin-top: 15px; font-size: 0.8rem; background: #f4f6f8; padding: 10px; border-radius: 6px; color: #333; }
+  </style>
 </head>
 <body>
-    <a href="/" class="logo">CloudMart<span>.in</span></a>
+  <div class="auth-page">
+    <a href="/" class="auth-logo">cloud<span>mart</span>.in</a>
 
-    <div class="card">
-        <h1>Sign In</h1>
-        <div id="errorBox" class="error-box"></div>
+    <div class="auth-box">
+      <div class="auth-tabs">
+        <a href="/login" class="auth-tab active">Sign In</a>
+        <a href="/register" class="auth-tab">Create Account</a>
+      </div>
 
-        <label>Email Address</label>
-        <input type="email" id="loginEmail" value="sankar@example.com" placeholder="Email">
+      <div id="error-box" class="auth-error" style="display: none;"></div>
 
-        <label>Password</label>
-        <input type="password" id="loginPassword" value="Password123!" placeholder="Password">
-
-        <button class="btn-signin" onclick="executeLogin()">Sign In</button>
-
-        <div style="font-size:12px; color:#555; margin-top:20px; text-align:center; border-top:1px solid #eee; padding-top:15px;">
-            <span>New to CloudMart?</span>
-            <a href="/register" class="new-account-btn">Create your CloudMart account</a>
+      <form id="login-form" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label for="email">Email or mobile phone number</label>
+          <input type="email" id="email" required autocomplete="email" placeholder="customer@cloudmart.com">
         </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" required autocomplete="current-password" placeholder="••••••••">
+        </div>
+
+        <button type="submit" id="submit-btn" class="btn-auth-submit">Sign In</button>
+      </form>
+
+      <div class="demo-creds">
+        <strong>Demo Accounts:</strong><br>
+        Customer: <code>customer@cloudmart.com</code> / <code>password123</code><br>
+        Seller: <code>seller@cloudmart.com</code> / <code>seller123</code>
+      </div>
     </div>
 
-    <script>
-        const API = '/api';
+    <div class="auth-footer">
+      © 2026 CloudMart India, Inc. or its affiliates. Capstone Project.
+    </div>
+  </div>
 
-        async function executeLogin() {
-            const email = document.getElementById('loginEmail').value.trim();
-            const password = document.getElementById('loginPassword').value;
-            const err = document.getElementById('errorBox');
-            err.style.display = 'none';
+  <script src="/shared.js?v=v5_all_fix"></script>
+  <script>
+    async function handleLogin(e) {
+      e.preventDefault();
+      const errBox = document.getElementById("error-box");
+      const btn = document.getElementById("submit-btn");
+      errBox.style.display = "none";
 
-            try {
-                const res = await fetch(`${API}/auth/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
-                });
-                const data = await res.json();
-                if (!res.ok) {
-                    err.innerText = data.error || "Login failed";
-                    err.style.display = 'block';
-                    return;
-                }
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
 
-                localStorage.setItem('cloudmart_jwt', data.token);
-                localStorage.setItem('cloudmart_user', JSON.stringify(data.user));
-                location.href = '/';
-            } catch(e) {
-                err.innerText = "Network error communicating with authentication service.";
-                err.style.display = 'block';
-            }
+      btn.disabled = true;
+      btn.innerText = "Signing in...";
+
+      try {
+        const res = await window.cloudmartFetch("/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || "Invalid email or password.");
         }
-    </script>
+
+        // Save auth data
+        localStorage.setItem("cloudmart_token", data.token || "demo_token");
+        localStorage.setItem("cloudmart_user", JSON.stringify(data.user || { name: email.split('@')[0], email: email, city: "Chennai 600028" }));
+        localStorage.setItem("cloudmart_role", data.user?.role || "customer");
+
+        window.location.href = "/";
+      } catch (err) {
+        errBox.innerText = err.message || "Failed to sign in. Please verify your credentials or server status.";
+        errBox.style.display = "block";
+        btn.disabled = false;
+        btn.innerText = "Sign In";
+      }
+    }
+  </script>
 </body>
 </html>

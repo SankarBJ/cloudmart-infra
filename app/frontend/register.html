@@ -1,116 +1,112 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>CloudMart Registration | Create Account</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        body { background: #fff; display: flex; flex-direction: column; align-items: center; padding: 30px 15px; }
-        .logo { font-size: 28px; font-weight: 800; color: #111; text-decoration: none; margin-bottom: 20px; }
-        .logo span { color: #febd69; }
-        .card { width: 100%; max-width: 380px; border: 1px solid #ddd; border-radius: 8px; padding: 25px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        h1 { font-size: 24px; font-weight: 700; margin-bottom: 15px; }
-        label { display: block; font-size: 13px; font-weight: 600; margin-top: 12px; margin-bottom: 4px; }
-        input { width: 100%; padding: 9px; font-size: 14px; border: 1px solid #a6a6a6; border-radius: 4px; outline: none; }
-        input:focus { border-color: #e77600; box-shadow: 0 0 3px 2px rgba(228,121,17,.5); }
-        .btn-register { width: 100%; background: #ffd814; border: 1px solid #a88734; border-radius: 8px; padding: 10px; font-size: 14px; font-weight: 700; margin-top: 20px; cursor: pointer; }
-        .btn-register:hover { background: #f7ca00; }
-        .error-box { background: #fff0f0; border: 1px solid #ffcccc; color: #cc0000; padding: 8px 12px; border-radius: 4px; font-size: 13px; margin-bottom: 12px; display: none; }
-        .otp-box { background: #f0f7ff; border: 1px solid #cce5ff; padding: 15px; border-radius: 6px; margin-top: 15px; display: none; }
-    </style>
+  <meta charset="UTF-8">
+  <title>Create Account - CloudMart</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/style.css?v=v5_all_fix">
+  <style>
+    .auth-page { display: flex; flex-direction: column; align-items: center; padding-top: 24px; min-height: 100vh; background: #ffffff; }
+    .auth-logo { font-size: 2rem; font-weight: 800; margin-bottom: 20px; text-decoration: none; color: #131921; }
+    .auth-logo span { color: #ff9900; }
+    .auth-box { width: 350px; padding: 24px 26px; border: 1px solid #d5d9d9; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    .auth-tabs { display: flex; border-bottom: 2px solid #e7e7e7; margin-bottom: 20px; }
+    .auth-tab { flex: 1; text-align: center; padding: 10px 0; font-weight: 600; font-size: 0.95rem; cursor: pointer; color: #555; text-decoration: none; }
+    .auth-tab.active { color: #111; border-bottom: 3px solid #e77600; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 5px; color: #111; }
+    .form-group input, .form-group select { width: 100%; padding: 8px 10px; border: 1px solid #a6a6a6; border-radius: 4px; font-size: 0.9rem; box-sizing: border-box; }
+    .btn-auth-submit { width: 100%; background: #ffd814; border: 1px solid #fcd200; border-radius: 8px; padding: 9px; font-size: 0.9rem; font-weight: 600; cursor: pointer; margin-top: 10px; }
+    .btn-auth-submit:hover { background: #f7ca00; }
+    .auth-error { background: #fff8f7; border: 1px solid #cc0c39; border-radius: 4px; padding: 10px 14px; color: #cc0c39; font-size: 0.85rem; margin-bottom: 14px; line-height: 1.35; }
+    .auth-footer { font-size: 0.75rem; color: #555; text-align: center; margin-top: 30px; }
+  </style>
 </head>
 <body>
-    <a href="/" class="logo">CloudMart<span>.in</span></a>
-    <div class="card">
-        <h1>Create Account</h1>
-        <div id="errorBox" class="error-box"></div>
-        <div id="formSection">
-            <label>Your Name</label>
-            <input type="text" id="regName" placeholder="First and last name">
-            <label>Mobile Number (For Delivery SMS & Geofence OTP)</label>
-            <input type="text" id="regPhone" value="+919876543210" placeholder="Mobile number">
-            <label>Email Address</label>
-            <input type="email" id="regEmail" placeholder="e.g. sankar@example.com">
-            <label>Password</label>
-            <input type="password" id="regPassword" placeholder="At least 6 characters">
-            <label>Re-enter Password</label>
-            <input type="password" id="regConfirmPassword" placeholder="Re-type password">
-            <button class="btn-register" onclick="proceedToVerification()">Verify Email & Mobile</button>
+  <div class="auth-page">
+    <a href="/" class="auth-logo">cloud<span>mart</span>.in</a>
+
+    <div class="auth-box">
+      <div class="auth-tabs">
+        <a href="/login" class="auth-tab">Sign In</a>
+        <a href="/register" class="auth-tab active">Create Account</a>
+      </div>
+
+      <div id="error-box" class="auth-error" style="display: none;"></div>
+
+      <form id="reg-form" onsubmit="handleRegister(event)">
+        <div class="form-group">
+          <label for="name">Your name</label>
+          <input type="text" id="name" required placeholder="First and last name">
         </div>
-        <div id="otpSection" class="otp-box">
-            <h3 style="font-size:14px; font-weight:700; color:#007185;">Verification Required</h3>
-            <p style="font-size:12px; color:#555; margin: 4px 0 10px;">We sent a 6-digit verification code to your email.</p>
-            <div style="background:#fff3cd; padding:6px; font-size:12px; font-weight:bold; margin-bottom:10px;">
-                🔑 Demo Verification Code: <span id="demoOtpDisplay">739201</span>
-            </div>
-            <input type="text" id="inputOtpCode" maxlength="6" placeholder="Enter 6-digit OTP" style="text-align:center; font-size:16px; font-weight:bold;">
-            <button class="btn-register" style="margin-top:10px;" onclick="verifyAndCreateAccount()">Create your CloudMart account</button>
+
+        <div class="form-group">
+          <label for="email">Mobile number or email</label>
+          <input type="email" id="email" required placeholder="you@example.com">
         </div>
-        <p style="font-size:12px; color:#555; margin-top:18px; border-top:1px solid #eee; padding-top:15px;">
-            Already have an account? <a href="/login" style="color:#007185; font-weight:600; text-decoration:none;">Sign in</a>
-        </p>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" required minlength="6" placeholder="At least 6 characters">
+        </div>
+
+        <div class="form-group">
+          <label for="role">Account Type</label>
+          <select id="role">
+            <option value="customer" selected>Customer (Buy on CloudMart)</option>
+            <option value="seller">Seller (Seller Central Vendor)</option>
+          </select>
+        </div>
+
+        <button type="submit" id="submit-btn" class="btn-auth-submit">Create your CloudMart account</button>
+      </form>
     </div>
-    <script>
-        const API = '/api';
-        let generatedOtp = '739201';
-        function proceedToVerification() {
-            const name = document.getElementById('regName').value.trim();
-            const email = document.getElementById('regEmail').value.trim();
-            const pw = document.getElementById('regPassword').value;
-            const confirmPw = document.getElementById('regConfirmPassword').value;
-            const err = document.getElementById('errorBox');
-            err.style.display = 'none';
-            if (!name || !email || !pw || !confirmPw) {
-                err.innerText = "Please fill in all required fields.";
-                err.style.display = 'block';
-                return;
-            }
-            if (pw.length < 6) {
-                err.innerText = "Password must be at least 6 characters.";
-                err.style.display = 'block';
-                return;
-            }
-            if (pw !== confirmPw) {
-                err.innerText = "Passwords do not match.";
-                err.style.display = 'block';
-                return;
-            }
-            generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
-            document.getElementById('demoOtpDisplay').innerText = generatedOtp;
-            document.getElementById('formSection').style.display = 'none';
-            document.getElementById('otpSection').style.display = 'block';
+
+    <div class="auth-footer">
+      © 2026 CloudMart India, Inc. or its affiliates. Capstone Project.
+    </div>
+  </div>
+
+  <script src="/shared.js?v=v5_all_fix"></script>
+  <script>
+    async function handleRegister(e) {
+      e.preventDefault();
+      const errBox = document.getElementById("error-box");
+      const btn = document.getElementById("submit-btn");
+      errBox.style.display = "none";
+
+      const name = document.getElementById("name").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      const role = document.getElementById("role").value;
+
+      btn.disabled = true;
+      btn.innerText = "Creating account...";
+
+      try {
+        const res = await window.cloudmartFetch("/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, password, role })
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || "Failed to create account.");
         }
-        async function verifyAndCreateAccount() {
-            const entered = document.getElementById('inputOtpCode').value.trim();
-            const err = document.getElementById('errorBox');
-            if (entered !== generatedOtp) {
-                err.innerText = "Invalid verification code.";
-                err.style.display = 'block';
-                return;
-            }
-            const payload = {
-                name: document.getElementById('regName').value.trim(),
-                email: document.getElementById('regEmail').value.trim(),
-                phone_number: document.getElementById('regPhone').value.trim(),
-                password: document.getElementById('regPassword').value
-            };
-            const res = await fetch(`${API}/auth/register`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            const data = await res.json();
-            if (!res.ok) {
-                err.innerText = data.error || "Registration failed";
-                err.style.display = 'block';
-                return;
-            }
-            localStorage.setItem('cloudmart_jwt', data.token);
-            localStorage.setItem('cloudmart_user', JSON.stringify(data.user));
-            alert("🎉 CloudMart account verified and created! Redirecting to storefront...");
-            location.href = '/';
-        }
-    </script>
+
+        localStorage.setItem("cloudmart_token", data.token || "demo_token");
+        localStorage.setItem("cloudmart_user", JSON.stringify(data.user || { name, email, role, city: "Chennai 600028" }));
+        localStorage.setItem("cloudmart_role", role);
+
+        window.location.href = "/";
+      } catch (err) {
+        errBox.innerText = err.message || "Network error. Please ensure backend service is running.";
+        errBox.style.display = "block";
+        btn.disabled = false;
+        btn.innerText = "Create your CloudMart account";
+      }
+    }
+  </script>
 </body>
 </html>

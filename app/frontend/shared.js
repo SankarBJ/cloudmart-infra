@@ -1,5 +1,38 @@
-// CloudMart Unified Shared Navigation & English Voice Assistant
+// CloudMart Universal Navigation, Voice Assistant & Resilient API Connector
 (function() {
+  // Determine best API endpoint automatically
+  window.getApiBase = function() {
+    if (window.location.protocol === 'file:') return 'http://localhost:5000/api';
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      if (window.location.port === '5000') return '/api';
+      return '/api';
+    }
+    return '/api';
+  };
+
+  // Robust fetch with automatic backend fallback
+  window.cloudmartFetch = async function(endpoint, options = {}) {
+    const path = endpoint.startsWith('/') ? endpoint : '/' + endpoint;
+    const candidates = [
+      window.getApiBase() + path,
+      'http://localhost:5000/api' + path,
+      'https://cloudmart-infra-2.onrender.com/api' + path
+    ];
+
+    let lastError = null;
+    for (const url of candidates) {
+      try {
+        const res = await fetch(url, options);
+        if (res.ok || res.status === 400 || res.status === 401 || res.status === 403 || res.status === 404 || res.status === 409) {
+          return res;
+        }
+      } catch (err) {
+        lastError = err;
+      }
+    }
+    throw lastError || new Error("Failed to connect to any backend service.");
+  };
+
   function getCartCount() {
     try {
       const cart = JSON.parse(localStorage.getItem("cloudmart_cart") || "[]");
@@ -41,8 +74,17 @@
               <option value="Fashion">Fashion</option>
               <option value="Home">Home</option>
             </select>
-            <input type="text" id="twotabsearchtextbox" class="nav-search-input" placeholder="Search Amazon in English or tap mic..." autocomplete="off">
-            <button type="button" id="nav-mic-btn" class="nav-mic-btn" title="Click to speak in English" onclick="window.startEnglishVoiceSearch()">
+            <input type="text" id="twotabsearchtextbox" class="nav-search-input" placeholder="Search CloudMart or tap mic..." autocomplete="off">
+            
+            <div class="voice-lang-pill" id="voice-lang-pill" title="Current Voice Language">
+              <select id="voice-lang-select" onchange="window.currentVoiceLang = this.value">
+                <option value="en-IN" selected>EN</option>
+                <option value="hi-IN">HI</option>
+                <option value="ta-IN">TA</option>
+              </select>
+            </div>
+
+            <button type="button" id="nav-mic-btn" class="nav-mic-btn" title="Tap to speak" onclick="window.startVoiceSearch()">
               🎙️
             </button>
             <button type="submit" class="nav-search-btn" title="Search">
@@ -52,13 +94,9 @@
         </div>
 
         <div class="nav-right">
-          <div class="nav-lang-badge">
-            <span class="flag-icon">🇮🇳</span> <span>EN</span>
-          </div>
-
           <div class="nav-account-dropdown">
             <a href="${user ? '/orders' : '/login'}" class="nav-link">
-              <span class="nav-line-1">Hello, ${user ? user.name.split(' ')[0] : 'sign in'}</span>
+              <span class="nav-line-1">Hello, ${user ? user.name.split(' ')[0] : 'Sign In'}</span>
               <span class="nav-line-2">Account & Lists ▾</span>
             </a>
           </div>
@@ -90,18 +128,25 @@
         <a href="/?cat=Home" class="subnav-link">Home & Kitchen</a>
         <a href="/ai-chat" class="subnav-link nav-highlight">✨ Marti AI & Voice Assistant</a>
         <span class="subnav-spacer"></span>
-        <a href="${role === 'seller' ? '/?view=seller' : '/?view=customer'}" class="subnav-link seller-switch" id="role-switch-link">
+        <a href="${role === 'seller' ? '/?view=seller' : '/?view=customer'}" class="subnav-link seller-switch">
           ${role === 'seller' ? 'Switch to Customer View' : 'Sell on CloudMart (Seller Central)'}
         </a>
       </nav>
+
+      <!-- Floating Marti AI Quick Launcher -->
+      <a href="/ai-chat" class="marti-float-btn" title="Talk to Marti AI Assistant">
+        <span class="float-icon">🤖</span>
+        <span class="float-text">Ask Marti AI</span>
+      </a>
     `;
   }
 
-  // English-only Speech Recognition
-  window.startEnglishVoiceSearch = function() {
+  window.currentVoiceLang = 'en-IN';
+
+  window.startVoiceSearch = function() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      alert("Voice recognition is supported in Google Chrome and Microsoft Edge. Please open this page in Chrome or Edge.");
+      alert("Voice recognition is supported in Google Chrome and Microsoft Edge.");
       return;
     }
 
@@ -112,36 +157,27 @@
       try { window.activeVoiceRecognition.stop(); } catch(e){}
       window.activeVoiceRecognition = null;
       if (micBtn) micBtn.classList.remove("listening");
-      if (searchInput) searchInput.placeholder = "Search Amazon in English...";
+      if (searchInput) searchInput.placeholder = "Search CloudMart or tap mic...";
       return;
     }
 
     const recognition = new SpeechRecognition();
-    recognition.lang = 'en-IN'; // Indian English dialect (compatible with en-US)
+    recognition.lang = window.currentVoiceLang || 'en-IN';
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
 
-    if (micBtn) {
-      micBtn.classList.add("listening");
-      micBtn.title = "Listening... Speak in English now";
-    }
-    if (searchInput) {
-      searchInput.placeholder = "🎙️ Listening... Speak your search in English";
-    }
+    if (micBtn) micBtn.classList.add("listening");
+    if (searchInput) searchInput.placeholder = "🎙️ Listening... Speak now";
 
     recognition.onresult = function(event) {
-      let query = event.results[0][0].transcript || "";
-      console.log("Spoken English text:", query);
+      let query = (event.results[0][0].transcript || "").trim();
+      let clean = query.toLowerCase();
 
-      // Clean conversational filler words
-      let clean = query.trim().toLowerCase();
+      // Clean conversational prefixes
       const fillers = [
-        "search for", "please search for", "search",
-        "show me", "can you show me", "can you show", "show",
-        "find me", "can you find me", "find",
-        "looking for", "i am looking for", "i'm looking for",
-        "i want to buy", "i want", "buy", "order", "get me",
-        "what is the price of", "price of"
+        "search for", "search", "show me", "can you show", "show",
+        "find me", "find", "looking for", "i want to buy", "buy", "order",
+        "price of", "parungoa", "kaattu", "dikhaiye"
       ];
       for (const f of fillers) {
         if (clean.startsWith(f + " ")) {
@@ -153,10 +189,9 @@
       const finalQuery = clean || query;
       if (searchInput) {
         searchInput.value = finalQuery;
-        searchInput.placeholder = "Search Amazon in English...";
+        searchInput.placeholder = "Search CloudMart or tap mic...";
       }
 
-      // Execute search
       if (typeof window.executeSearchFilter === 'function') {
         window.executeSearchFilter(finalQuery);
       } else {
@@ -167,16 +202,16 @@
     recognition.onerror = function(event) {
       console.warn("Speech recognition error:", event.error);
       if (micBtn) micBtn.classList.remove("listening");
-      if (searchInput) searchInput.placeholder = "Search Amazon in English...";
+      if (searchInput) searchInput.placeholder = "Search CloudMart or tap mic...";
       if (event.error === 'not-allowed') {
-        alert("Microphone access was denied. Please allow microphone permissions in your browser address bar.");
+        alert("Microphone permission was denied. Please allow microphone access in your browser bar.");
       }
     };
 
     recognition.onend = function() {
       if (micBtn) micBtn.classList.remove("listening");
       if (searchInput && searchInput.placeholder.includes("Listening")) {
-        searchInput.placeholder = "Search Amazon in English...";
+        searchInput.placeholder = "Search CloudMart or tap mic...";
       }
       window.activeVoiceRecognition = null;
     };
