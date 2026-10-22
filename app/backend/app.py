@@ -790,3 +790,81 @@ def voice_search_endpoint():
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
+
+
+# --- Marti AI & Voice Assistant Catalog Intelligence ---
+@app.route('/api/ai-chat', methods=['POST', 'OPTIONS'])
+def ai_chat_endpoint():
+    if request.method == 'OPTIONS':
+        return '', 200
+    try:
+        data = request.get_json(silent=True) or {}
+        raw_query = (data.get('query') or '').strip()
+        q = raw_query.lower()
+        if not q:
+            return jsonify({'reply': "I'm Marti! Ask me to search products or explain our 50m geofence delivery.", 'products': []})
+
+        # Capstone Doorstep Handshake & Policies
+        if any(k in q for k in ["geofence", "handshake", "delivery", "otp", "doorstep", "s2"]):
+            return jsonify({
+                'reply': "CloudMart features a Dual-Factor Spatial-Cryptographic Handshake. Deliveries are protected by a strict 50-meter doorstep perimeter using Google S2 Level-16 geometry tokens. The delivery agent cannot enter the OTP unless physically within 50 meters of your doorstep, preventing remote courier OTP fraud.",
+                'products': []
+            })
+        if any(k in q for k in ["return", "refund", "policy", "replace"]):
+            return jsonify({
+                'reply': "CloudMart offers a 7-day hassle-free replacement and return policy on electronics and mobiles. Items can be scheduled for pickup directly from your Orders page.",
+                'products': []
+            })
+
+        # Fetch products from PostgreSQL or fallback catalog
+        products_list = []
+        try:
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT id, title, category, price, stock, COALESCE(image_url, '')
+                FROM products
+                WHERE stock > 0
+                LIMIT 60
+            """)
+            for r in cur.fetchall():
+                products_list.append({
+                    'id': r[0], 'title': r[1], 'category': r[2],
+                    'price': float(r[3]), 'stock': r[4], 'image_url': r[5]
+                })
+            cur.close()
+            conn.close()
+        except Exception:
+            pass
+
+        if not products_list:
+            products_list = [
+                {"id": 1, "title": "Boat Stone 1200 Bluetooth Speaker 14W", "category": "Electronics", "price": 3499, "stock": 45, "image_url": "https://images.unsplash.com/photo-1545454675-3531b543be5d?w=300"},
+                {"id": 2, "title": "JBL Flip 6 Wireless Portable Speaker", "category": "Electronics", "price": 9999, "stock": 20, "image_url": "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=300"},
+                {"id": 3, "title": "Sony WH-1000XM5 Noise Cancelling Headphones", "category": "Electronics", "price": 26990, "stock": 18, "image_url": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300"},
+                {"id": 4, "title": "Apple iPhone 15 (128 GB) - Black", "category": "Mobiles", "price": 71999, "stock": 12, "image_url": "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=300"},
+                {"id": 5, "title": "ASUS TUF Gaming F15 Laptop (Intel i5 12th Gen)", "category": "Electronics", "price": 54990, "stock": 8, "image_url": "https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=300"},
+            ]
+
+        # Stopword stripping
+        clean_q = q
+        for f in ["show me", "find me", "can you show", "search for", "price of", "looking for", "buy", "order", "i want"]:
+            if clean_q.startswith(f):
+                clean_q = clean_q.replace(f, "").strip()
+
+        words = [w for w in re.split(r'\W+', clean_q) if len(w) > 2]
+        matches = []
+        for p in products_list:
+            text = f"{p['title']} {p.get('category', '')}".lower()
+            if not words or any(w in text or (w.endswith('s') and w[:-1] in text) for w in words):
+                matches.append(p)
+
+        if matches:
+            reply = f"I found {len(matches)} item(s) matching '{raw_query}'. Here are the best options available in our store:"
+        else:
+            matches = products_list[:3]
+            reply = f"Here are our most popular products in stock today:"
+
+        return jsonify({'reply': reply, 'products': matches[:6]})
+    except Exception as e:
+        return jsonify({'reply': "Here are our featured products in stock:", 'products': []})
