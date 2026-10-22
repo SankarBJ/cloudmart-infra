@@ -1,203 +1,209 @@
-const API = '/api';
+// CloudMart Unified Shared Navigation & English Voice Assistant
+(function() {
+  function getCartCount() {
+    try {
+      const cart = JSON.parse(localStorage.getItem("cloudmart_cart") || "[]");
+      return cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+    } catch(e) { return 0; }
+  }
 
-function getAuthToken() { return localStorage.getItem('cloudmart_jwt'); }
-function getCurrentUser() { return JSON.parse(localStorage.getItem('cloudmart_user') || 'null'); }
-function getCart() { return JSON.parse(localStorage.getItem('cloudmart_cart') || '[]'); }
+  function getUser() {
+    try { return JSON.parse(localStorage.getItem("cloudmart_user") || "null"); }
+    catch(e) { return null; }
+  }
 
-function saveCart(cart) {
-    localStorage.setItem('cloudmart_cart', JSON.stringify(cart));
-    updateCartCount();
-}
+  function renderHeader() {
+    const headerContainer = document.getElementById("cloudmart-header");
+    if (!headerContainer) return;
 
-function updateCartCount() {
-    const countEl = document.getElementById('navCartCount');
-    if (countEl) {
-        const cart = getCart();
-        const total = cart.reduce((acc, it) => acc + (it.quantity || 1), 0);
-        countEl.innerText = total;
-    }
-}
+    const user = getUser();
+    const cartCount = getCartCount();
+    const role = localStorage.getItem("cloudmart_role") || "customer";
 
-function renderAmazonHeaderInto(containerId, activePage = '') {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-
-    const user = getCurrentUser();
-    const userGreeting = user ? `Hello, ${user.name.split(' ')[0]}` : 'Hello, Sign In';
-
-    container.innerHTML = `
-    <header class="amz-header">
-        <div class="amz-nav-top">
-            <a href="/" class="amz-logo">CloudMart<span>.in</span></a>
-            
-            <div class="amz-deliver-box" onclick="location.href='/checkout'">
-                <span style="font-size:11px; color:#ccc;">Deliver to ${user ? user.name.split(' ')[0] : 'Guest'}</span>
-                <strong style="font-size:13px; color:#fff;">Vellore 632014</strong>
-            </div>
-
-            <!-- Search Bar with Explicit Microphone Button -->
-            <div class="amz-search-bar">
-                <input type="text" id="globalSearchInput" placeholder="Search products or tap mic to speak..." 
-                       onkeyup="if(event.key==='Enter') executeSearch()">
-                <button type="button" class="btn-mic-nav" title="Voice Search (Tamil / Hindi / English)" onclick="openVoiceSearchModal()">🎙️</button>
-                <button type="button" onclick="executeSearch()">🔍</button>
-            </div>
-
-            <div class="amz-nav-actions">
-                <a href="#" class="amz-nav-link" onclick="handleLogout()">
-                    <span style="font-size:11px;">${userGreeting}</span>
-                    <strong style="font-size:13px;">Sign Out</strong>
-                </a>
-
-                <a href="/orders" class="amz-nav-link">
-                    <span style="font-size:11px;">Returns</span>
-                    <strong style="font-size:13px;">& Orders</strong>
-                </a>
-
-                <a href="/cart" class="amz-cart-btn">
-                    <span style="font-size:22px;">🛒</span>
-                    <span id="navCartCount" class="amz-cart-badge">0</span>
-                    <strong style="color:#fff; font-size:13px;">Cart</strong>
-                </a>
-            </div>
+    headerContainer.innerHTML = `
+      <header class="navbar">
+        <div class="nav-left">
+          <a href="/" class="nav-logo">
+            <span class="logo-bold">cloud</span><span class="logo-orange">mart</span><span class="logo-domain">.in</span>
+          </a>
+          <div class="nav-deliver-to">
+            <span class="nav-line-1">Deliver to</span>
+            <span class="nav-line-2">📍 ${user ? (user.city || "Chennai 600028") : "India"}</span>
+          </div>
         </div>
 
-        <div class="amz-subnav">
-            <a href="/" class="${activePage === 'home' ? 'active' : ''}">All Departments</a>
-            <a href="/?cat=Electronics">Electronics</a>
-            <a href="/?cat=Home%20%26%20Kitchen">Home & Kitchen</a>
-            <a href="/?cat=Office">Office</a>
-            <a href="/?cat=Fashion">Fashion</a>
-            <a href="/?cat=Books">Books</a>
-            <a href="/orders">Order History</a>
-            <a href="/tracking">Logistics Handshake</a>
-            <a href="#" onclick="openVoiceSearchModal()" style="color:#febd69; font-weight:700;">🎙️ Voice Search</a>
-            <a href="/ai-chat" style="color:#ffd814; font-weight:700;">✨ Marti AI</a>
+        <div class="nav-center">
+          <form class="nav-search-form" onsubmit="event.preventDefault(); window.triggerHeaderSearch();">
+            <select class="nav-search-dropdown" id="nav-search-category">
+              <option value="All">All</option>
+              <option value="Electronics">Electronics</option>
+              <option value="Mobiles">Mobiles</option>
+              <option value="Fashion">Fashion</option>
+              <option value="Home">Home</option>
+            </select>
+            <input type="text" id="twotabsearchtextbox" class="nav-search-input" placeholder="Search Amazon in English or tap mic..." autocomplete="off">
+            <button type="button" id="nav-mic-btn" class="nav-mic-btn" title="Click to speak in English" onclick="window.startEnglishVoiceSearch()">
+              🎙️
+            </button>
+            <button type="submit" class="nav-search-btn" title="Search">
+              🔍
+            </button>
+          </form>
         </div>
-    </header>
 
-    <!-- Regional Voice Search Listening Modal -->
-    <div id="voiceModal" class="voice-modal-overlay">
-        <div class="voice-card">
-            <span class="voice-close-btn" onclick="closeVoiceSearchModal()">✕</span>
-            <div class="voice-pulse-circle">
-                <span style="font-size:38px;">🎙️</span>
-            </div>
-            <h3 id="voiceStatusTitle" style="font-size:17px; font-weight:700; margin-top:15px;">Listening...</h3>
-            <p id="voiceLiveTranscript" style="font-size:15px; color:#007185; min-height:45px; margin:10px 0; font-weight:600;">
-                Speak into your microphone now...
-            </p>
+        <div class="nav-right">
+          <div class="nav-lang-badge">
+            <span class="flag-icon">🇮🇳</span> <span>EN</span>
+          </div>
 
-            <div style="margin-top:10px; border-top:1px solid #eee; padding-top:12px;">
-                <label style="font-size:12px; font-weight:700; color:#555;">Select Voice Language:</label>
-                <div style="display:flex; justify-content:center; gap:8px; margin-top:8px;">
-                    <button type="button" class="voice-lang-btn active" id="btnLangTa" onclick="setVoiceLang('ta-IN', this)">தமிழ் (Tamil)</button>
-                    <button type="button" class="voice-lang-btn" id="btnLangHi" onclick="setVoiceLang('hi-IN', this)">हिन्दी (Hindi)</button>
-                    <button type="button" class="voice-lang-btn" id="btnLangEn" onclick="setVoiceLang('en-IN', this)">English (India)</button>
-                </div>
-            </div>
+          <div class="nav-account-dropdown">
+            <a href="${user ? '/orders' : '/login'}" class="nav-link">
+              <span class="nav-line-1">Hello, ${user ? user.name.split(' ')[0] : 'sign in'}</span>
+              <span class="nav-line-2">Account & Lists ▾</span>
+            </a>
+          </div>
+
+          <a href="/orders" class="nav-link">
+            <span class="nav-line-1">Returns</span>
+            <span class="nav-line-2">& Orders</span>
+          </a>
+
+          <a href="/cart" class="nav-link nav-cart-link">
+            <span class="nav-cart-icon">🛒</span>
+            <span class="nav-cart-count" id="nav-cart-count">${cartCount}</span>
+            <span class="nav-line-2 cart-text">Cart</span>
+          </a>
+
+          ${user ? `
+            <button class="nav-btn-logout" onclick="window.logoutUser()">Sign Out</button>
+          ` : `
+            <a href="/login" class="nav-btn-signin">Sign In</a>
+          `}
         </div>
-    </div>
+      </header>
+
+      <nav class="subnav">
+        <a href="/" class="subnav-link">🏠 All Products</a>
+        <a href="/?cat=Mobiles" class="subnav-link">Mobiles</a>
+        <a href="/?cat=Electronics" class="subnav-link">Electronics</a>
+        <a href="/?cat=Fashion" class="subnav-link">Fashion</a>
+        <a href="/?cat=Home" class="subnav-link">Home & Kitchen</a>
+        <a href="/ai-chat" class="subnav-link nav-highlight">✨ Marti AI & Voice Assistant</a>
+        <span class="subnav-spacer"></span>
+        <a href="${role === 'seller' ? '/?view=seller' : '/?view=customer'}" class="subnav-link seller-switch" id="role-switch-link">
+          ${role === 'seller' ? 'Switch to Customer View' : 'Sell on CloudMart (Seller Central)'}
+        </a>
+      </nav>
     `;
+  }
 
-    updateCartCount();
-}
-
-let activeVoiceLang = 'ta-IN';
-let speechRecognizer = null;
-
-function setVoiceLang(langCode, btnEl) {
-    activeVoiceLang = langCode;
-    document.querySelectorAll('.voice-lang-btn').forEach(b => b.classList.remove('active'));
-    if (btnEl) btnEl.classList.add('active');
-    if (speechRecognizer) {
-        speechRecognizer.abort();
-        startListeningSession();
-    }
-}
-
-function openVoiceSearchModal() {
+  // English-only Speech Recognition
+  window.startEnglishVoiceSearch = function() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-        alert("Speech Recognition requires Google Chrome or Microsoft Edge. Please allow microphone access.");
-        return;
+      alert("Voice recognition is supported in Google Chrome and Microsoft Edge. Please open this page in Chrome or Edge.");
+      return;
     }
-    const modal = document.getElementById('voiceModal');
-    if (modal) modal.style.display = 'flex';
-    startListeningSession();
-}
 
-function closeVoiceSearchModal() {
-    if (speechRecognizer) speechRecognizer.abort();
-    const modal = document.getElementById('voiceModal');
-    if (modal) modal.style.display = 'none';
-}
+    const micBtn = document.getElementById("nav-mic-btn");
+    const searchInput = document.getElementById("twotabsearchtextbox");
 
-function startListeningSession() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    speechRecognizer = new SpeechRecognition();
-    speechRecognizer.lang = activeVoiceLang;
-    speechRecognizer.interimResults = true;
-    speechRecognizer.maxAlternatives = 1;
+    if (window.activeVoiceRecognition) {
+      try { window.activeVoiceRecognition.stop(); } catch(e){}
+      window.activeVoiceRecognition = null;
+      if (micBtn) micBtn.classList.remove("listening");
+      if (searchInput) searchInput.placeholder = "Search Amazon in English...";
+      return;
+    }
 
-    const transcriptEl = document.getElementById('voiceLiveTranscript');
-    const titleEl = document.getElementById('voiceStatusTitle');
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-IN'; // Indian English dialect (compatible with en-US)
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
 
-    titleEl.innerText = activeVoiceLang === 'ta-IN' ? 'பேசுங்கள்... (Listening in Tamil)' : 
-                       activeVoiceLang === 'hi-IN' ? 'बोलिए... (Listening in Hindi)' : 'Listening in English...';
+    if (micBtn) {
+      micBtn.classList.add("listening");
+      micBtn.title = "Listening... Speak in English now";
+    }
+    if (searchInput) {
+      searchInput.placeholder = "🎙️ Listening... Speak your search in English";
+    }
 
-    speechRecognizer.onresult = (event) => {
-        let currentTranscript = '';
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-            currentTranscript += event.results[i][0].transcript;
+    recognition.onresult = function(event) {
+      let query = event.results[0][0].transcript || "";
+      console.log("Spoken English text:", query);
+
+      // Clean conversational filler words
+      let clean = query.trim().toLowerCase();
+      const fillers = [
+        "search for", "please search for", "search",
+        "show me", "can you show me", "can you show", "show",
+        "find me", "can you find me", "find",
+        "looking for", "i am looking for", "i'm looking for",
+        "i want to buy", "i want", "buy", "order", "get me",
+        "what is the price of", "price of"
+      ];
+      for (const f of fillers) {
+        if (clean.startsWith(f + " ")) {
+          clean = clean.slice(f.length + 1).trim();
+          break;
         }
-        transcriptEl.innerText = `"${currentTranscript}"`;
+      }
 
-        if (event.results[0].isFinal) {
-            processVoiceTranscript(currentTranscript);
-        }
+      const finalQuery = clean || query;
+      if (searchInput) {
+        searchInput.value = finalQuery;
+        searchInput.placeholder = "Search Amazon in English...";
+      }
+
+      // Execute search
+      if (typeof window.executeSearchFilter === 'function') {
+        window.executeSearchFilter(finalQuery);
+      } else {
+        window.location.href = "/?search=" + encodeURIComponent(finalQuery);
+      }
     };
 
-    speechRecognizer.onerror = (event) => {
-        titleEl.innerText = "Listening Paused";
-        transcriptEl.innerText = "Please ensure microphone permissions are granted in browser.";
+    recognition.onerror = function(event) {
+      console.warn("Speech recognition error:", event.error);
+      if (micBtn) micBtn.classList.remove("listening");
+      if (searchInput) searchInput.placeholder = "Search Amazon in English...";
+      if (event.error === 'not-allowed') {
+        alert("Microphone access was denied. Please allow microphone permissions in your browser address bar.");
+      }
     };
 
-    try { speechRecognizer.start(); } catch(e) {}
-}
+    recognition.onend = function() {
+      if (micBtn) micBtn.classList.remove("listening");
+      if (searchInput && searchInput.placeholder.includes("Listening")) {
+        searchInput.placeholder = "Search Amazon in English...";
+      }
+      window.activeVoiceRecognition = null;
+    };
 
-async function processVoiceTranscript(rawText) {
-    try {
-        const res = await fetch(`${API}/voice-search`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ transcript: rawText, lang: activeVoiceLang })
-        });
-        const data = await res.json();
-        const searchKeyword = data.normalized_query || rawText;
+    window.activeVoiceRecognition = recognition;
+    recognition.start();
+  };
 
-        const inputEl = document.getElementById('globalSearchInput');
-        if (inputEl) inputEl.value = searchKeyword;
-
-        setTimeout(() => {
-            closeVoiceSearchModal();
-            location.href = `/?search=${encodeURIComponent(searchKeyword)}`;
-        }, 700);
-    } catch(e) {
-        closeVoiceSearchModal();
-        location.href = `/?search=${encodeURIComponent(rawText)}`;
+  window.triggerHeaderSearch = function() {
+    const input = document.getElementById("twotabsearchtextbox");
+    const query = input ? input.value.trim() : "";
+    if (typeof window.executeSearchFilter === 'function') {
+      window.executeSearchFilter(query);
+    } else {
+      window.location.href = "/?search=" + encodeURIComponent(query);
     }
-}
+  };
 
-function executeSearch() {
-    const q = document.getElementById('globalSearchInput').value.trim();
-    if (q) location.href = `/?search=${encodeURIComponent(q)}`;
-}
+  window.logoutUser = function() {
+    localStorage.removeItem("cloudmart_token");
+    localStorage.removeItem("cloudmart_user");
+    window.location.href = "/login";
+  };
 
-function handleLogout() {
-    if (confirm("Sign out of CloudMart?")) {
-        localStorage.removeItem('cloudmart_jwt');
-        localStorage.removeItem('cloudmart_user');
-        location.href = '/';
-    }
-}
+  window.addEventListener("DOMContentLoaded", renderHeader);
+  window.updateCartBadge = function() {
+    const badge = document.getElementById("nav-cart-count");
+    if (badge) badge.innerText = getCartCount();
+  };
+})();
