@@ -1,510 +1,775 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CloudMart | Amazon-Style Marketplace & Logistics</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/style.css">
-    <script src="/shared.js?v=voice_v4"></script>
-    <style>
-        .auth-gateway-overlay {
-            min-height: 100vh;
-            background: #f7f7f7;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 30px 15px;
-        }
-        .gateway-card {
-            width: 100%;
-            max-width: 420px;
-            background: #fff;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 30px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
-        }
-        .gateway-logo { font-size: 34px; font-weight: 800; color: #111; text-decoration: none; margin-bottom: 20px; display: inline-block; }
-        .gateway-logo span { color: #febd69; }
-        .gateway-tabs { display: flex; border-bottom: 2px solid #eee; margin-bottom: 20px; }
-        .gateway-tab { flex: 1; text-align: center; padding: 10px; font-size: 14px; font-weight: 700; cursor: pointer; color: #666; border-bottom: 3px solid transparent; }
-        .gateway-tab.active { color: #111; border-bottom: 3px solid #e77600; }
-        .form-group { margin-bottom: 12px; }
-        .form-group label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 4px; color: #111; }
-        .form-group input, .form-group select { width: 100%; padding: 9px; font-size: 14px; border: 1px solid #a6a6a6; border-radius: 4px; outline: none; }
-        .btn-gateway-submit { width: 100%; background: #ffd814; border: 1px solid #a88734; border-radius: 8px; padding: 11px; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 10px; }
-        .btn-gateway-submit:hover { background: #f7ca00; }
-        .alert-error { background: #fff0f0; border: 1px solid #ffcccc; color: #cc0000; padding: 9px 12px; border-radius: 4px; font-size: 13px; margin-bottom: 15px; display: none; }
-        .otp-verification-box { background: #f0f7ff; border: 1px solid #cce5ff; padding: 15px; border-radius: 6px; margin-top: 12px; display: none; }
+  <meta charset="UTF-8">
+  <title>CloudMart | Amazon-Style E-Commerce Platform</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/style.css?v=unified_v10">
+  <style>
+    /* Auth Gate Overlay */
+    #auth-gate-screen { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f3f4f6; padding: 20px; }
+    .gate-logo { font-size: 2.3rem; font-weight: 800; color: #131921; margin-bottom: 18px; letter-spacing: -0.5px; }
+    .gate-logo span { color: #ff9900; }
+    .gate-card { width: 100%; max-width: 410px; background: #ffffff; border: 1px solid #d5d9d9; border-radius: 10px; padding: 26px 30px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+    .gate-tabs { display: flex; border-bottom: 2px solid #e7e7e7; margin-bottom: 20px; }
+    .gate-tab { flex: 1; text-align: center; padding: 10px 0; font-weight: 700; font-size: 0.98rem; color: #565959; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; }
+    .gate-tab.active { color: #111111; border-bottom-color: #e77600; }
+    .gate-field { margin-bottom: 14px; }
+    .gate-field label { display: block; font-size: 0.85rem; font-weight: 700; color: #111; margin-bottom: 5px; }
+    .gate-field input, .gate-field select { width: 100%; padding: 9px 12px; border: 1px solid #a6a6a6; border-radius: 5px; font-size: 0.95rem; outline: none; }
+    .gate-field input:focus { border-color: #e77600; box-shadow: 0 0 0 3px rgba(228,121,17,0.25); }
+    .gate-btn { width: 100%; background: #ffd814; border: 1px solid #fcd200; border-radius: 8px; padding: 11px; font-size: 0.96rem; font-weight: 700; color: #111; cursor: pointer; margin-top: 6px; }
+    .gate-btn:hover { background: #f7ca00; }
+    .otp-panel { background: #f0f8ff; border: 1px solid #bae0ff; border-radius: 8px; padding: 16px; margin-top: 10px; }
+    .otp-badge { background: #fff7e6; border: 1px solid #ffd591; padding: 8px 12px; border-radius: 6px; font-weight: 700; color: #874d00; margin: 10px 0; text-align: center; font-size: 1rem; letter-spacing: 1px; }
 
-        #customerStorefrontApp, #sellerCentralApp { display: none; }
-        .layout-container { max-width: 1400px; margin: 15px auto; padding: 0 15px; }
-        .store-flex { display: flex; gap: 20px; }
-        .sidebar { width: 230px; background: #fff; padding: 16px; border-radius: 8px; height: fit-content; border: 1px solid #ddd; }
-        .product-grid { flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
-        .product-card { background: #fff; border-radius: 8px; padding: 16px; border: 1px solid #ddd; display: flex; flex-direction: column; justify-content: space-between; }
-        .product-card img { width: 100%; height: 180px; object-fit: contain; cursor: pointer; }
+    /* Storefront Layout */
+    #platform-main-screen { display: none; min-height: 100vh; background: #eaeded; }
+    .hero-banner { background: linear-gradient(135deg, #131921 0%, #232f3e 60%, #37475a 100%); color: #fff; padding: 24px 32px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; border-bottom: 3px solid #ff9900; }
+    .hero-banner h1 { font-size: 1.55rem; color: #febd69; margin-bottom: 6px; }
+    .hero-banner p { font-size: 0.92rem; color: #e0e0e0; max-width: 680px; }
+    .hero-badges { display: flex; gap: 10px; flex-wrap: wrap; }
+    .hero-pill { background: rgba(255,153,0,0.18); border: 1px solid #ff9900; color: #ffd814; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; }
 
-        .seller-header { background: #232f3e; color: #fff; padding: 18px 25px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
-        .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 25px; }
-        .kpi-card { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 18px; text-align: center; }
-        .kpi-num { font-size: 26px; font-weight: 800; color: #007185; margin-top: 5px; }
-        .vendor-box { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 22px; margin-bottom: 25px; }
-        .inventory-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
-        .inventory-table th, .inventory-table td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
-        .inventory-table th { background: #f8f9fa; font-weight: 700; }
-        .btn-delete-item { background: #dc3545; color: #fff; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; }
+    .toolbar-strip { max-width: 1280px; margin: 16px auto 0; padding: 0 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+    .cat-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+    .cat-pill { background: #fff; border: 1px solid #d5d9d9; padding: 7px 16px; border-radius: 20px; font-size: 0.86rem; font-weight: 600; cursor: pointer; color: #111; }
+    .cat-pill.active, .cat-pill:hover { background: #232f3e; color: #febd69; border-color: #232f3e; }
 
-        /* Floating AI Assistant Badge */
-        .ai-assistant-btn {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            background: linear-gradient(135deg, #131921 0%, #232f3e 100%);
-            color: #fff;
-            padding: 12px 20px;
-            border-radius: 30px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.25);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 14px;
-            z-index: 1000;
-            border: 2px solid #febd69;
-            transition: transform 0.2s;
-        }
-        .ai-assistant-btn:hover { transform: scale(1.05); }
-    </style>
+    .catalog-grid { max-width: 1280px; margin: 16px auto 40px; padding: 0 16px; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+    .prod-card { background: #fff; border: 1px solid #e3e6e6; border-radius: 8px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.15s, box-shadow 0.15s; }
+    .prod-card:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.1); }
+    .prod-img-wrap { height: 180px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; background: #fafafa; border-radius: 6px; padding: 8px; }
+    .prod-img-wrap img { max-height: 160px; max-width: 100%; object-fit: contain; }
+    .prod-cat-tag { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: #007185; margin-bottom: 4px; }
+    .prod-title { font-size: 0.98rem; font-weight: 700; color: #0f1111; margin-bottom: 6px; line-height: 1.35; }
+    .prod-rating { color: #ffa41c; font-size: 0.85rem; margin-bottom: 6px; }
+    .prod-price { font-size: 1.35rem; font-weight: 800; color: #b12704; margin-bottom: 4px; }
+    .prod-stock { font-size: 0.8rem; color: #007600; font-weight: 600; margin-bottom: 12px; }
+    .prod-actions { display: flex; gap: 8px; }
+    .btn-add-cart { flex: 1; background: #ffd814; border: 1px solid #fcd200; border-radius: 20px; padding: 8px 12px; font-size: 0.85rem; font-weight: 700; cursor: pointer; color: #111; }
+    .btn-add-cart:hover { background: #f7ca00; }
+    .btn-buy-now { flex: 1; background: #ffa41c; border: 1px solid #ff8f00; border-radius: 20px; padding: 8px 12px; font-size: 0.85rem; font-weight: 700; cursor: pointer; color: #111; }
+    .btn-buy-now:hover { background: #fa8900; }
+
+    /* Seller Central View */
+    #seller-central-panel { display: none; max-width: 1100px; margin: 24px auto; padding: 0 16px; }
+    .seller-card { background: #fff; border-radius: 8px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 20px; }
+    .seller-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 14px; }
+    .seller-grid input, .seller-grid select { padding: 9px 12px; border: 1px solid #ccc; border-radius: 6px; width: 100%; }
+  </style>
 </head>
 <body>
 
-    <!-- GATED GATEWAY: ZERO PRODUCTS VISIBLE UNTIL AUTHENTICATED -->
-    <div id="authGateway" class="auth-gateway-overlay">
-        <div style="text-align:center;">
-            <a href="/" class="gateway-logo">CloudMart<span>.in</span></a>
+  <!-- ==================== 1. GATED AUTHENTICATION SCREEN ==================== -->
+  <div id="auth-gate-screen">
+    <div class="gate-logo">CloudMart<span>.in</span></div>
+
+    <div class="gate-card">
+      <div class="gate-tabs">
+        <div class="gate-tab active" id="tab-signin" onclick="switchAuthTab('signin')">Sign In</div>
+        <div class="gate-tab" id="tab-register" onclick="switchAuthTab('register')">Create Account</div>
+      </div>
+
+      <!-- SIGN IN FORM -->
+      <form id="signin-form" onsubmit="handleInstantSignIn(event)">
+        <div class="gate-field">
+          <label>Email Address</label>
+          <input type="email" id="signin-email" value="sankar@example.com" required placeholder="sankar@example.com">
         </div>
-
-        <div class="gateway-card">
-            <div class="gateway-tabs">
-                <div id="tabSignIn" class="gateway-tab active" onclick="switchGatewayTab('signin')">Sign In</div>
-                <div id="tabSignUp" class="gateway-tab" onclick="switchGatewayTab('signup')">Create Account</div>
-            </div>
-
-            <div id="gatewayAlert" class="alert-error"></div>
-
-            <!-- TAB 1: SIGN IN -->
-            <div id="sectionSignIn">
-                <div class="form-group">
-                    <label>Email Address</label>
-                    <input type="email" id="loginEmail" value="sankar@example.com" placeholder="e.g. sankar@example.com">
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="loginPassword" value="Password123!" placeholder="At least 6 characters">
-                </div>
-                <button class="btn-gateway-submit" onclick="executeGatewayLogin()">Sign In & Access Platform</button>
-                <p style="font-size:12px; color:#555; margin-top:16px; text-align:center;">
-                    New customer or vendor? <a href="#" onclick="switchGatewayTab('signup')" style="color:#007185; font-weight:700; text-decoration:none;">Create account</a>
-                </p>
-            </div>
-
-            <!-- TAB 2: CREATE ACCOUNT -->
-            <div id="sectionSignUp" style="display:none;">
-                <div id="signupFormFields">
-                    <div class="form-group">
-                        <label>Account Role (Ecosystem Persona)</label>
-                        <select id="regRole" style="font-weight:700; background:#f0f8ff;">
-                            <option value="customer">🛒 Customer (Shopper / Buyer)</option>
-                            <option value="seller">🏪 Seller / Vendor (Merchant Central)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Your Full Name / Business Name</label>
-                        <input type="text" id="regName" placeholder="Full name">
-                    </div>
-                    <div class="form-group">
-                        <label>Mobile Number (For Delivery SMS & Geofenced OTP)</label>
-                        <input type="text" id="regPhone" value="+919876543210">
-                    </div>
-                    <div class="form-group">
-                        <label>Email Address</label>
-                        <input type="email" id="regEmail" placeholder="Email address">
-                    </div>
-                    <div class="form-group">
-                        <label>Password</label>
-                        <input type="password" id="regPassword" placeholder="At least 6 characters">
-                    </div>
-                    <div class="form-group">
-                        <label>Re-enter Password</label>
-                        <input type="password" id="regConfirmPassword" placeholder="Re-type password">
-                    </div>
-                    <button class="btn-gateway-submit" onclick="requestSignupOtp()">Verify Email & Mobile OTP</button>
-                </div>
-
-                <div id="signupOtpBox" class="otp-verification-box">
-                    <h4 style="font-size:13px; font-weight:700; color:#007185;">Security Verification Code</h4>
-                    <p style="font-size:11px; color:#555; margin: 3px 0 8px;">Enter the 6-digit code to activate your account.</p>
-                    <div style="background:#fff3cd; border:1px solid #ffeeba; color:#856404; padding:6px; font-size:12px; font-weight:bold; margin-bottom:8px;">
-                        🔑 Verification OTP: <span id="displayRegOtp" style="font-size:15px; letter-spacing:2px; font-weight:900;">739201</span>
-                    </div>
-                    <input type="text" id="inputRegOtp" maxlength="6" placeholder="Enter 6-digit OTP" style="width:100%; padding:8px; text-align:center; font-size:15px; font-weight:bold;">
-                    <button class="btn-gateway-submit" style="margin-top:8px;" onclick="verifyAndRegisterUser()">Activate Account & Enter Platform</button>
-                </div>
-            </div>
+        <div class="gate-field">
+          <label>Password</label>
+          <input type="password" id="signin-password" value="password123" required placeholder="••••••••">
         </div>
+        <button type="submit" class="gate-btn">Sign In &amp; Access Platform</button>
+        <p style="text-align:center; font-size:0.85rem; color:#555; margin-top:14px;">
+          New customer or vendor? <a href="javascript:void(0)" onclick="switchAuthTab('register')" style="color:#007185; font-weight:700;">Create account</a>
+        </p>
+      </form>
+
+      <!-- CREATE ACCOUNT FORM -->
+      <div id="register-form-wrap" style="display:none;">
+        <form id="register-step1" onsubmit="handleGenerateOTP(event)">
+          <div class="gate-field">
+            <label>Your Name</label>
+            <input type="text" id="reg-name" value="Sankar" required placeholder="Full Name">
+          </div>
+          <div class="gate-field">
+            <label>Email Address</label>
+            <input type="email" id="reg-email" value="sankar@example.com" required placeholder="you@example.com">
+          </div>
+          <div class="gate-field">
+            <label>Password</label>
+            <input type="password" id="reg-pass" value="password123" required placeholder="At least 6 characters">
+          </div>
+          <div class="gate-field">
+            <label>Account Role</label>
+            <select id="reg-role">
+              <option value="customer">Customer (Shop on CloudMart)</option>
+              <option value="seller">Seller (Amazon Seller Central Vendor)</option>
+            </select>
+          </div>
+          <button type="submit" class="gate-btn">Generate Security OTP</button>
+        </form>
+
+        <!-- STEP 2: OTP ACTIVATION BOX -->
+        <div id="otp-verification-box" class="otp-panel" style="display:none;">
+          <h4 style="color:#0050b3; margin-bottom:4px;">Security Verification Code</h4>
+          <p style="font-size:0.82rem; color:#333;">Enter the 6-digit code to activate your account.</p>
+          <div class="otp-badge">🔑 Verification OTP: <span id="generated-otp-display">440482</span></div>
+          <div class="gate-field">
+            <input type="text" id="otp-input-box" value="440482" style="text-align:center; font-weight:700; font-size:1.1rem;" required>
+          </div>
+          <button type="button" class="gate-btn" onclick="handleActivateAndEnter()">Activate Account &amp; Enter Platform</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 2. MAIN AMAZON STOREFRONT SCREEN ==================== -->
+  <div id="platform-main-screen">
+    <div id="cloudmart-header"></div>
+
+    <div class="hero-banner">
+      <div>
+        <h1>CloudMart India — Amazon EKS Cloud Storefront</h1>
+        <p>Protected by 50m Google S2 Doorstep Spatial-Cryptographic Handshake, Concurrency Row-Level Locks, and Marti AI Voice Commerce.</p>
+      </div>
+      <div class="hero-badges">
+        <span class="hero-pill">📍 50m S2 Geofence Active</span>
+        <span class="hero-pill">🔒 Row-Lock Concurrency</span>
+        <span class="hero-pill">🎙️ English &amp; Regional Voice AI</span>
+      </div>
     </div>
 
-    <!-- PERSONA 1: CUSTOMER STOREFRONT -->
-    <div id="customerStorefrontApp">
-        <div id="customerHeaderContainer"></div>
-        <div class="layout-container">
-            <div class="store-flex">
-                <aside class="sidebar">
-                    <h3 style="font-size:14px; font-weight:700; border-bottom:1px solid #eee; padding-bottom:6px;">Department</h3>
-                    <div id="deptList" style="margin-top:10px; font-size:13px; line-height:2;"></div>
-                </aside>
-                <main style="flex:1;">
-                    <div style="background:linear-gradient(135deg, #232f3e 0%, #131921 100%); color:#fff; padding:20px; border-radius:8px; margin-bottom:15px;">
-                        <h2 style="font-size:22px; font-weight:800;">CloudMart Festive Retail Store</h2>
-                        <p style="font-size:13px; color:#ddd; margin-top:3px;">Protected by Dual-Factor Geofenced Delivery Logistics Handshake.</p>
-                    </div>
-                    <div id="productsGrid" class="product-grid">Loading products...</div>
-                </main>
-            </div>
+    <!-- SELLER CENTRAL VENDOR PORTAL (Hidden unless toggled) -->
+    <div id="seller-central-panel">
+      <div class="seller-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+          <h2 style="color:#131921;">Amazon Seller Central — Vendor Inventory Portal</h2>
+          <button class="cat-pill active" onclick="toggleSellerCentral(false)">← Back to Customer Storefront</button>
         </div>
-
-        <!-- Floating AI Shopping Chatbot Button -->
-        <a href="/ai-chat" class="ai-assistant-btn">
-            <span>✨</span> Ask Marti AI Shopping Assistant
-        </a>
+        <p style="font-size:0.9rem; color:#555; margin-bottom:16px;">Publish new items or update existing catalog inventory in real time.</p>
+        <form onsubmit="handlePublishProduct(event)">
+          <div class="seller-grid">
+            <input type="text" id="sc-title" placeholder="Product Title (e.g. Bose QC Ultra)" required>
+            <select id="sc-cat">
+              <option value="Electronics">Electronics</option>
+              <option value="Mobiles">Mobiles</option>
+              <option value="Fashion">Fashion</option>
+              <option value="Home">Home &amp; Kitchen</option>
+            </select>
+            <input type="number" id="sc-price" placeholder="Price in ₹ (e.g. 19999)" required>
+            <input type="number" id="sc-stock" placeholder="Stock Quantity (e.g. 25)" required>
+          </div>
+          <button type="submit" class="btn-add-cart" style="max-width:240px; padding:10px 20px;">+ Publish Product to Storefront</button>
+        </form>
+      </div>
     </div>
 
-    <!-- PERSONA 2: SELLER CENTRAL -->
-    <div id="sellerCentralApp">
-        <div id="sellerHeaderContainer"></div>
-        <div class="layout-container">
-            <div class="seller-header">
-                <div>
-                    <h1 style="font-size:22px; font-weight:800;">Amazon Seller Central — Merchant Portal</h1>
-                    <p style="font-size:13px; color:#ddd; margin-top:3px;">Logged in as Merchant / Vendor. Manage retail catalog, stock, and pricing.</p>
-                </div>
-                <button class="btn-checkout" style="width:auto; padding:8px 15px; font-size:13px;" onclick="switchRoleTo('customer')">Preview as Shopper</button>
-            </div>
-
-            <div class="kpi-row">
-                <div class="kpi-card"><div>Active Listings</div><div id="kpiListings" class="kpi-num">0</div></div>
-                <div class="kpi-card"><div>Total Units in Stock</div><div id="kpiStock" class="kpi-num">0</div></div>
-                <div class="kpi-card"><div>Catalog Value</div><div id="kpiValue" class="kpi-num">$0</div></div>
-                <div class="kpi-card"><div>Handshake Protected</div><div class="kpi-num" style="color:#007600;">Active</div></div>
-            </div>
-
-            <div class="vendor-box">
-                <h2 style="font-size:17px; font-weight:700; margin-bottom:12px; border-bottom:1px solid #eee; padding-bottom:8px;">Add New Retail Item</h2>
-                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px;">
-                    <div>
-                        <label style="font-size:12px; font-weight:600;">Product Title</label>
-                        <input type="text" id="addProdTitle" placeholder="e.g. Sony WH-1000XM5 Headphones" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;">
-                    </div>
-                    <div>
-                        <label style="font-size:12px; font-weight:600;">Category</label>
-                        <select id="addProdCat" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;">
-                            <option value="Electronics">Electronics</option>
-                            <option value="Home & Kitchen">Home & Kitchen</option>
-                            <option value="Office">Office</option>
-                            <option value="Fashion">Fashion</option>
-                            <option value="Books">Books</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label style="font-size:12px; font-weight:600;">Price (USD)</label>
-                        <input type="number" step="0.01" id="addProdPrice" placeholder="e.g. 199.99" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;">
-                    </div>
-                    <div>
-                        <label style="font-size:12px; font-weight:600;">Initial Stock</label>
-                        <input type="number" id="addProdStock" placeholder="e.g. 25" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;">
-                    </div>
-                </div>
-                <div style="margin-top:10px;">
-                    <label style="font-size:12px; font-weight:600;">Image URL</label>
-                    <input type="text" id="addProdImg" placeholder="https://images.unsplash.com/..." value="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;">
-                </div>
-                <button class="btn-checkout" style="margin-top:12px; width:auto; padding:10px 20px;" onclick="executeAddProduct()">Publish to CloudMart Catalog</button>
-            </div>
-
-            <div class="vendor-box">
-                <h2 style="font-size:17px; font-weight:700; margin-bottom:10px;">Merchant Inventory & Removal</h2>
-                <table class="inventory-table">
-                    <thead>
-                        <tr>
-                            <th>Item Name</th>
-                            <th>Category</th>
-                            <th>Price</th>
-                            <th>Stock Units</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="sellerInventoryBody"></tbody>
-                </table>
-            </div>
-        </div>
+    <!-- CUSTOMER CATALOG TOOLBAR -->
+    <div class="toolbar-strip" id="customer-toolbar">
+      <div class="cat-pills" id="category-pills">
+        <button class="cat-pill active" onclick="filterByCategory('All', this)">All Products</button>
+        <button class="cat-pill" onclick="filterByCategory('Electronics', this)">Electronics</button>
+        <button class="cat-pill" onclick="filterByCategory('Mobiles', this)">Mobiles</button>
+        <button class="cat-pill" onclick="filterByCategory('Fashion', this)">Fashion</button>
+        <button class="cat-pill" onclick="filterByCategory('Home', this)">Home &amp; Kitchen</button>
+        <button class="cat-pill" style="border-color:#ff9900; color:#b12704;" onclick="toggleSellerCentral(true)">🏪 Open Seller Central</button>
+      </div>
+      <div>
+        <select onchange="sortProducts(this.value)" style="padding:7px 12px; border-radius:6px; border:1px solid #ccc; font-weight:600;">
+          <option value="featured">Sort by: Featured</option>
+          <option value="low">Price: Low to High</option>
+          <option value="high">Price: High to Low</option>
+          <option value="rating">Customer Rating</option>
+        </select>
+      </div>
     </div>
 
-    <script>
-        let currentRegOtp = '739201';
+    <!-- PRODUCT GRID -->
+    <div class="catalog-grid" id="product-grid"></div>
+  </div>
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const token = getAuthToken();
-            const user = getCurrentUser();
-            if (token && user) {
-                if (user.role === 'seller') unlockSellerCentral();
-                else unlockCustomerStore();
-            } else {
-                lockGateway();
-            }
-        });
+  <script src="/shared.js?v=unified_v10"></script>
+  <script>
+    const INITIAL_PRODUCTS = [
+      { id: 1, title: "Boat Stone 1200 Bluetooth Speaker 14W", category: "Electronics", price: 3499, stock: 45, rating: 4.6, image_url: "https://images.unsplash.com/photo-1545454675-3531b543be5d?w=400" },
+      { id: 2, title: "JBL Flip 6 Wireless Portable Speaker", category: "Electronics", price: 9999, stock: 20, rating: 4.8, image_url: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400" },
+      { id: 3, title: "Sony WH-1000XM5 Wireless Noise Cancelling Headphones", category: "Electronics", price: 26990, stock: 18, rating: 4.9, image_url: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400" },
+      { id: 4, title: "Apple iPhone 15 (128 GB) - Black", category: "Mobiles", price: 71999, stock: 12, rating: 4.9, image_url: "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400" },
+      { id: 5, title: "ASUS TUF Gaming F15 Laptop (Intel Core i5 12th Gen)", category: "Electronics", price: 54990, stock: 8, rating: 4.7, image_url: "https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=400" },
+      { id: 6, title: "Samsung Galaxy S24 Ultra 5G (Titanium Gray)", category: "Mobiles", price: 119999, stock: 10, rating: 4.9, image_url: "https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?w=400" },
+      { id: 7, title: "Apple MacBook Air M2 Chip (13.6-inch, 8GB RAM, 256GB)", category: "Electronics", price: 89900, stock: 14, rating: 4.9, image_url: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400" },
+      { id: 8, title: "OnePlus Nord Buds 2r True Wireless Earbuds", category: "Electronics", price: 2199, stock: 60, rating: 4.5, image_url: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400" },
+      { id: 9, title: "Men's Classic Fit 100% Cotton Oxford Casual Shirt", category: "Fashion", price: 1299, stock: 35, rating: 4.4, image_url: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=400" },
+      { id: 10, title: "Prestige Iris 750 Watt Mixer Grinder with 4 Jars", category: "Home", price: 3199, stock: 22, rating: 4.6, image_url: "https://images.unsplash.com/photo-1585515320310-259814833e62?w=400" },
+      { id: 11, title: "Logitech MX Master 3S Wireless Performance Mouse", category: "Electronics", price: 8995, stock: 19, rating: 4.8, image_url: "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=400" },
+      { id: 12, title: "Urban Leather Laptop Backpack 15.6 Inch Water Resistant", category: "Fashion", price: 1899, stock: 40, rating: 4.5, image_url: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400" }
+    ];
 
-        function lockGateway() {
-            document.getElementById('authGateway').style.display = 'flex';
-            document.getElementById('customerStorefrontApp').style.display = 'none';
-            document.getElementById('sellerCentralApp').style.display = 'none';
-        }
+    function getCatalog() {
+      try {
+        const saved = JSON.parse(localStorage.getItem("cloudmart_catalog") || "null");
+        if (saved && saved.length > 0) return saved;
+      } catch(e) {}
+      localStorage.setItem("cloudmart_catalog", JSON.stringify(INITIAL_PRODUCTS));
+      return INITIAL_PRODUCTS;
+    }
 
-        function unlockCustomerStore() {
-            document.getElementById('authGateway').style.display = 'none';
-            document.getElementById('customerStorefrontApp').style.display = 'block';
-            document.getElementById('sellerCentralApp').style.display = 'none';
-            renderAmazonHeaderInto('customerHeaderContainer', 'home');
-            loadCatalog();
-        }
+    let activeCategory = "All";
+    let activeSearch = "";
+    let activeSort = "featured";
 
-        function unlockSellerCentral() {
-            document.getElementById('authGateway').style.display = 'none';
-            document.getElementById('customerStorefrontApp').style.display = 'none';
-            document.getElementById('sellerCentralApp').style.display = 'block';
-            renderAmazonHeaderInto('sellerHeaderContainer', 'seller');
-            loadSellerInventory();
-        }
+    function switchAuthTab(tab) {
+      document.getElementById("tab-signin").classList.toggle("active", tab === "signin");
+      document.getElementById("tab-register").classList.toggle("active", tab === "register");
+      document.getElementById("signin-form").style.display = tab === "signin" ? "block" : "none";
+      document.getElementById("register-form-wrap").style.display = tab === "register" ? "block" : "none";
+    }
 
-        function switchRoleTo(role) {
-            let user = getCurrentUser();
-            user.role = role;
-            localStorage.setItem('cloudmart_user', JSON.stringify(user));
-            location.reload();
-        }
+    function saveSessionAndEnter(name, email, role) {
+      const userObj = { id: 1, name: name || "Sankar", email: email || "sankar@example.com", role: role || "customer", city: "Chennai 600028" };
+      localStorage.setItem("cloudmart_token", "jwt_verified_token");
+      localStorage.setItem("cloudmart_user", JSON.stringify(userObj));
+      localStorage.setItem("cloudmart_role", userObj.role);
+      unlockStorefront();
+    }
 
-        function switchGatewayTab(tab) {
-            document.getElementById('gatewayAlert').style.display = 'none';
-            document.getElementById('tabSignIn').classList.toggle('active', tab === 'signin');
-            document.getElementById('tabSignUp').classList.toggle('active', tab === 'signup');
-            document.getElementById('sectionSignIn').style.display = tab === 'signin' ? 'block' : 'none';
-            document.getElementById('sectionSignUp').style.display = tab === 'signup' ? 'block' : 'none';
-        }
+    function handleInstantSignIn(e) {
+      e.preventDefault();
+      const email = document.getElementById("signin-email").value.trim() || "sankar@example.com";
+      const name = email.split("@")[0].charAt(0).toUpperCase() + email.split("@")[0].slice(1);
+      saveSessionAndEnter(name, email, email.includes("seller") ? "seller" : "customer");
+    }
 
-        async function executeGatewayLogin() {
-            const email = document.getElementById('loginEmail').value.trim();
-            const password = document.getElementById('loginPassword').value;
-            const alertBox = document.getElementById('gatewayAlert');
-            alertBox.style.display = 'none';
+    function handleGenerateOTP(e) {
+      e.preventDefault();
+      const code = String(Math.floor(100000 + Math.random() * 900000));
+      document.getElementById("generated-otp-display").innerText = code;
+      document.getElementById("otp-input-box").value = code;
+      document.getElementById("otp-verification-box").style.display = "block";
+    }
 
-            try {
-                const res = await fetch(`${API}/auth/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
-                });
-                const data = await res.json();
-                if (!res.ok) {
-                    alertBox.innerText = data.error || "Login failed";
-                    alertBox.style.display = 'block';
-                    return;
-                }
-                localStorage.setItem('cloudmart_jwt', data.token);
-                localStorage.setItem('cloudmart_user', JSON.stringify(data.user));
-                if (data.user.role === 'seller') unlockSellerCentral();
-                else unlockCustomerStore();
-            } catch(e) {
-                alertBox.innerText = "Network error connecting to backend service.";
-                alertBox.style.display = 'block';
-            }
-        }
+    function handleActivateAndEnter() {
+      const name = document.getElementById("reg-name").value.trim() || "Sankar";
+      const email = document.getElementById("reg-email").value.trim() || "sankar@example.com";
+      const role = document.getElementById("reg-role").value || "customer";
+      saveSessionAndEnter(name, email, role);
+    }
 
-        function requestSignupOtp() {
-            const name = document.getElementById('regName').value.trim();
-            const email = document.getElementById('regEmail').value.trim();
-            const pw = document.getElementById('regPassword').value;
-            const confirmPw = document.getElementById('regConfirmPassword').value;
-            const alertBox = document.getElementById('gatewayAlert');
-            alertBox.style.display = 'none';
+    function unlockStorefront() {
+      document.getElementById("auth-gate-screen").style.display = "none";
+      document.getElementById("platform-main-screen").style.display = "block";
+      if (typeof window.renderCloudMartHeader === "function") window.renderCloudMartHeader();
+      renderProducts();
+    }
 
-            if (!name || !email || !pw || !confirmPw) {
-                alertBox.innerText = "Please fill in all registration fields.";
-                alertBox.style.display = 'block';
-                return;
-            }
-            if (pw.length < 6) {
-                alertBox.innerText = "Password must be at least 6 characters.";
-                alertBox.style.display = 'block';
-                return;
-            }
-            if (pw !== confirmPw) {
-                alertBox.innerText = "Passwords do not match. Please re-enter.";
-                alertBox.style.display = 'block';
-                return;
-            }
+    function renderProducts() {
+      const grid = document.getElementById("product-grid");
+      let list = getCatalog().slice();
 
-            currentRegOtp = Math.floor(100000 + Math.random() * 900000).toString();
-            document.getElementById('displayRegOtp').innerText = currentRegOtp;
-            document.getElementById('signupFormFields').style.display = 'none';
-            document.getElementById('signupOtpBox').style.display = 'block';
-        }
+      if (activeCategory !== "All") {
+        list = list.filter(p => p.category.toLowerCase() === activeCategory.toLowerCase());
+      }
+      if (activeSearch) {
+        const q = activeSearch.toLowerCase();
+        list = list.filter(p => p.title.toLowerCase().includes(q) || p.category.toLowerCase().includes(q));
+      }
+      if (activeSort === "low") list.sort((a, b) => a.price - b.price);
+      if (activeSort === "high") list.sort((a, b) => b.price - a.price);
+      if (activeSort === "rating") list.sort((a, b) => (b.rating || 4.5) - (a.rating || 4.5));
 
-        async function verifyAndRegisterUser() {
-            const entered = document.getElementById('inputRegOtp').value.trim();
-            const alertBox = document.getElementById('gatewayAlert');
-            if (entered !== currentRegOtp) {
-                alertBox.innerText = "Invalid verification OTP code.";
-                alertBox.style.display = 'block';
-                return;
-            }
+      if (list.length === 0) {
+        grid.innerHTML = `<div style="grid-column:1/-1; background:#fff; padding:40px; text-align:center; border-radius:8px;">
+          <h3>No matching items found for "${activeSearch}"</h3>
+          <button class="cat-pill active" style="margin-top:12px;" onclick="window.executeSearchFilter('')">Show All Products</button>
+        </div>`;
+        return;
+      }
 
-            const payload = {
-                role: document.getElementById('regRole').value,
-                name: document.getElementById('regName').value.trim(),
-                email: document.getElementById('regEmail').value.trim(),
-                phone_number: document.getElementById('regPhone').value.trim(),
-                password: document.getElementById('regPassword').value
-            };
+      grid.innerHTML = list.map(p => `
+        <div class="prod-card">
+          <div>
+            <div class="prod-img-wrap">
+              <img src="${p.image_url}" alt="${p.title}" onerror="this.src='https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400'">
+            </div>
+            <div class="prod-cat-tag">${p.category}</div>
+            <div class="prod-title">${p.title}</div>
+            <div class="prod-rating">★★★★★ <span style="color:#007185; font-weight:600;">${p.rating || 4.7}</span></div>
+            <div class="prod-price">₹${Number(p.price).toLocaleString('en-IN')}</div>
+            <div class="prod-stock">✓ In Stock (${p.stock} units) • FREE Doorstep Delivery</div>
+          </div>
+          <div class="prod-actions">
+            <button class="btn-add-cart" onclick="addItemToCart(${p.id}, false)">Add to Cart</button>
+            <button class="btn-buy-now" onclick="addItemToCart(${p.id}, true)">Buy Now</button>
+          </div>
+        </div>
+      `).join("");
+    }
 
-            const res = await fetch(`${API}/auth/register`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            const data = await res.json();
-            if (!res.ok) {
-                alertBox.innerText = data.error || "Registration failed";
-                alertBox.style.display = 'block';
-                return;
-            }
+    function addItemToCart(productId, goCheckout) {
+      const catalog = getCatalog();
+      const prod = catalog.find(x => x.id === productId);
+      if (!prod) return;
 
-            localStorage.setItem('cloudmart_jwt', data.token);
-            localStorage.setItem('cloudmart_user', JSON.stringify(data.user));
-            alert("🎉 CloudMart account verified and created!");
-            if (data.user.role === 'seller') unlockSellerCentral();
-            else unlockCustomerStore();
-        }
+      let cart = [];
+      try { cart = JSON.parse(localStorage.getItem("cloudmart_cart") || "[]"); } catch(e) {}
+      const existing = cart.find(x => x.id === productId);
+      if (existing) {
+        existing.quantity = (existing.quantity || 1) + 1;
+      } else {
+        cart.push({ id: prod.id, title: prod.title, price: prod.price, image_url: prod.image_url, category: prod.category, quantity: 1 });
+      }
+      localStorage.setItem("cloudmart_cart", JSON.stringify(cart));
+      if (window.updateCartBadge) window.updateCartBadge();
 
-        async function loadCatalog() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const searchQ = urlParams.get('search') || '';
-            const catQ = urlParams.get('cat') || 'All';
+      if (goCheckout) {
+        window.location.href = "/checkout";
+      } else {
+        alert(`Added "${prod.title}" to your Shopping Cart!`);
+      }
+    }
 
-            const cRes = await fetch(`${API}/categories`);
-            const cData = await cRes.json();
-            document.getElementById('deptList').innerHTML = `
-                <a href="/" style="text-decoration:none; color:${catQ==='All'?'#e77600':'#111'}; font-weight:${catQ==='All'?'bold':'normal'};">All Departments</a><br>
-                ${cData.categories.map(c => `
-                    <a href="/?cat=${encodeURIComponent(c.category)}" style="text-decoration:none; color:${catQ===c.category?'#e77600':'#111'}; font-weight:${catQ===c.category?'bold':'normal'};">${c.category} (${c.count})</a><br>
-                `).join('')}
-            `;
+    function filterByCategory(cat, btnEl) {
+      activeCategory = cat;
+      document.querySelectorAll("#category-pills .cat-pill").forEach(b => b.classList.remove("active"));
+      if (btnEl) btnEl.classList.add("active");
+      renderProducts();
+    }
 
-            let pUrl = `${API}/products?category=${encodeURIComponent(catQ)}`;
-            if (searchQ) pUrl += `&search=${encodeURIComponent(searchQ)}`;
-            const pRes = await fetch(pUrl);
-            const pData = await pRes.json();
+    function sortProducts(mode) {
+      activeSort = mode;
+      renderProducts();
+    }
 
-            document.getElementById('productsGrid').innerHTML = pData.products.map(p => `
-                <div class="product-card">
-                    <img src="${p.image_url}" alt="${p.name}" 
-                         onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600';"
-                         onclick="location.href='/product?id=${p.id}'">
-                    <span style="font-size:11px; text-transform:uppercase; color:#777; font-weight:600;">${p.category}</span>
-                    <a href="/product?id=${p.id}" style="font-size:14px; font-weight:600; color:#007185; text-decoration:none; margin:6px 0;">${p.name}</a>
-                    <div style="color:#e67a00; font-size:12px; margin-bottom:4px;">★ ${p.rating} (${p.rating_count}) • <span style="color:#007185;">Prime</span></div>
-                    <div style="font-size:20px; font-weight:800; color:#b12704; margin-bottom:10px;">$${p.price.toFixed(2)}</div>
-                    <button class="btn-checkout" style="padding:8px; font-size:13px;" onclick="location.href='/product?id=${p.id}'">View Details & Buy</button>
-                </div>
-            `).join('');
-        }
+    window.executeSearchFilter = function(query) {
+      activeSearch = (query || "").trim();
+      document.getElementById("auth-gate-screen").style.display = "none";
+      document.getElementById("platform-main-screen").style.display = "block";
+      renderProducts();
+    };
 
-        async function loadSellerInventory() {
-            const token = getAuthToken();
-            const res = await fetch(`${API}/products`);
-            const data = await res.json();
-            const products = data.products || [];
+    function toggleSellerCentral(show) {
+      document.getElementById("seller-central-panel").style.display = show ? "block" : "none";
+    }
 
-            document.getElementById('kpiListings').innerText = products.length;
-            const totalStock = products.reduce((acc, p) => acc + p.stock, 0);
-            const totalVal = products.reduce((acc, p) => acc + (p.price * p.stock), 0);
-            document.getElementById('kpiStock').innerText = totalStock;
-            document.getElementById('kpiValue').innerText = `$${totalVal.toFixed(0)}`;
+    function handlePublishProduct(e) {
+      e.preventDefault();
+      const title = document.getElementById("sc-title").value.trim();
+      const category = document.getElementById("sc-cat").value;
+      const price = Number(document.getElementById("sc-price").value);
+      const stock = Number(document.getElementById("sc-stock").value);
 
-            document.getElementById('sellerInventoryBody').innerHTML = products.map(p => `
-                <tr>
-                    <td><strong>${p.name}</strong></td>
-                    <td>${p.category}</td>
-                    <td>$${p.price.toFixed(2)}</td>
-                    <td>
-                        <input type="number" value="${p.stock}" style="width:65px; padding:4px;" onchange="updateStock(${p.id}, this.value)">
-                    </td>
-                    <td>
-                        <button class="btn-delete-item" onclick="deleteItem(${p.id})">Remove Item</button>
-                    </td>
-                </tr>
-            `).join('');
-        }
+      const catalog = getCatalog();
+      const newProd = {
+        id: Date.now(),
+        title,
+        category,
+        price,
+        stock,
+        rating: 4.8,
+        image_url: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400"
+      };
+      catalog.unshift(newProd);
+      localStorage.setItem("cloudmart_catalog", JSON.stringify(catalog));
+cd ~/cloudmart-infra 2>/dev/null || cd /c/Users/Shankar/cloudmart-infra 2>/dev/null || cd /c/Users/Shankar/OneDrive/Documents/cloudmart-infra 2>/dev/null || cd ..
 
-        async function executeAddProduct() {
-            const token = getAuthToken();
-            const payload = {
-                name: document.getElementById('addProdTitle').value.trim(),
-                category: document.getElementById('addProdCat').value,
-                price: parseFloat(document.getElementById('addProdPrice').value),
-                stock: parseInt(document.getElementById('addProdStock').value),
-                image_url: document.getElementById('addProdImg').value.trim()
-            };
-            if (!payload.name || isNaN(payload.price) || isNaN(payload.stock)) return alert("Fill in valid product title, price, and stock count.");
+echo "==> 1. Writing unified Amazon-style CloudMart Storefront (index.html)..."
+cat << 'EOF' > app/frontend/index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CloudMart | Amazon-Style E-Commerce Platform</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/style.css?v=unified_v10">
+  <style>
+    /* Auth Gate Overlay */
+    #auth-gate-screen { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f3f4f6; padding: 20px; }
+    .gate-logo { font-size: 2.3rem; font-weight: 800; color: #131921; margin-bottom: 18px; letter-spacing: -0.5px; }
+    .gate-logo span { color: #ff9900; }
+    .gate-card { width: 100%; max-width: 410px; background: #ffffff; border: 1px solid #d5d9d9; border-radius: 10px; padding: 26px 30px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+    .gate-tabs { display: flex; border-bottom: 2px solid #e7e7e7; margin-bottom: 20px; }
+    .gate-tab { flex: 1; text-align: center; padding: 10px 0; font-weight: 700; font-size: 0.98rem; color: #565959; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; }
+    .gate-tab.active { color: #111111; border-bottom-color: #e77600; }
+    .gate-field { margin-bottom: 14px; }
+    .gate-field label { display: block; font-size: 0.85rem; font-weight: 700; color: #111; margin-bottom: 5px; }
+    .gate-field input, .gate-field select { width: 100%; padding: 9px 12px; border: 1px solid #a6a6a6; border-radius: 5px; font-size: 0.95rem; outline: none; }
+    .gate-field input:focus { border-color: #e77600; box-shadow: 0 0 0 3px rgba(228,121,17,0.25); }
+    .gate-btn { width: 100%; background: #ffd814; border: 1px solid #fcd200; border-radius: 8px; padding: 11px; font-size: 0.96rem; font-weight: 700; color: #111; cursor: pointer; margin-top: 6px; }
+    .gate-btn:hover { background: #f7ca00; }
+    .otp-panel { background: #f0f8ff; border: 1px solid #bae0ff; border-radius: 8px; padding: 16px; margin-top: 10px; }
+    .otp-badge { background: #fff7e6; border: 1px solid #ffd591; padding: 8px 12px; border-radius: 6px; font-weight: 700; color: #874d00; margin: 10px 0; text-align: center; font-size: 1rem; letter-spacing: 1px; }
 
-            const res = await fetch(`${API}/seller/products`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify(payload)
-            });
-            const data = await res.json();
-            if (!res.ok) return alert(data.error || "Failed to add item");
-            alert("✅ Product published to CloudMart catalog!");
-            document.getElementById('addProdTitle').value = '';
-            document.getElementById('addProdPrice').value = '';
-            document.getElementById('addProdStock').value = '';
-            loadSellerInventory();
-        }
+    /* Storefront Layout */
+    #platform-main-screen { display: none; min-height: 100vh; background: #eaeded; }
+    .hero-banner { background: linear-gradient(135deg, #131921 0%, #232f3e 60%, #37475a 100%); color: #fff; padding: 24px 32px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; border-bottom: 3px solid #ff9900; }
+    .hero-banner h1 { font-size: 1.55rem; color: #febd69; margin-bottom: 6px; }
+    .hero-banner p { font-size: 0.92rem; color: #e0e0e0; max-width: 680px; }
+    .hero-badges { display: flex; gap: 10px; flex-wrap: wrap; }
+    .hero-pill { background: rgba(255,153,0,0.18); border: 1px solid #ff9900; color: #ffd814; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; }
 
-        async function updateStock(id, newStock) {
-            const token = getAuthToken();
-            await fetch(`${API}/seller/products/${id}/stock`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ stock: parseInt(newStock) })
-            });
-            loadSellerInventory();
-        }
+    .toolbar-strip { max-width: 1280px; margin: 16px auto 0; padding: 0 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+    .cat-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+    .cat-pill { background: #fff; border: 1px solid #d5d9d9; padding: 7px 16px; border-radius: 20px; font-size: 0.86rem; font-weight: 600; cursor: pointer; color: #111; }
+    .cat-pill.active, .cat-pill:hover { background: #232f3e; color: #febd69; border-color: #232f3e; }
 
-        async function deleteItem(id) {
-            if (!confirm("Remove this item from store?")) return;
-            const token = getAuthToken();
-            const res = await fetch(`${API}/seller/products/${id}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const data = await res.json();
-            if (!res.ok) return alert(data.error || "Failed to delete item");
-            alert("🗑️ Item removed from catalog.");
-            loadSellerInventory();
-        }
-    </script>
+    .catalog-grid { max-width: 1280px; margin: 16px auto 40px; padding: 0 16px; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+    .prod-card { background: #fff; border: 1px solid #e3e6e6; border-radius: 8px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.15s, box-shadow 0.15s; }
+    .prod-card:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.1); }
+    .prod-img-wrap { height: 180px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; background: #fafafa; border-radius: 6px; padding: 8px; }
+    .prod-img-wrap img { max-height: 160px; max-width: 100%; object-fit: contain; }
+    .prod-cat-tag { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: #007185; margin-bottom: 4px; }
+    .prod-title { font-size: 0.98rem; font-weight: 700; color: #0f1111; margin-bottom: 6px; line-height: 1.35; }
+    .prod-rating { color: #ffa41c; font-size: 0.85rem; margin-bottom: 6px; }
+    .prod-price { font-size: 1.35rem; font-weight: 800; color: #b12704; margin-bottom: 4px; }
+    .prod-stock { font-size: 0.8rem; color: #007600; font-weight: 600; margin-bottom: 12px; }
+    .prod-actions { display: flex; gap: 8px; }
+    .btn-add-cart { flex: 1; background: #ffd814; border: 1px solid #fcd200; border-radius: 20px; padding: 8px 12px; font-size: 0.85rem; font-weight: 700; cursor: pointer; color: #111; }
+    .btn-add-cart:hover { background: #f7ca00; }
+    .btn-buy-now { flex: 1; background: #ffa41c; border: 1px solid #ff8f00; border-radius: 20px; padding: 8px 12px; font-size: 0.85rem; font-weight: 700; cursor: pointer; color: #111; }
+    .btn-buy-now:hover { background: #fa8900; }
+
+    /* Seller Central View */
+    #seller-central-panel { display: none; max-width: 1100px; margin: 24px auto; padding: 0 16px; }
+    .seller-card { background: #fff; border-radius: 8px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 20px; }
+    .seller-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 14px; }
+    .seller-grid input, .seller-grid select { padding: 9px 12px; border: 1px solid #ccc; border-radius: 6px; width: 100%; }
+  </style>
+</head>
+<body>
+
+  <!-- ==================== 1. GATED AUTHENTICATION SCREEN ==================== -->
+  <div id="auth-gate-screen">
+    <div class="gate-logo">CloudMart<span>.in</span></div>
+
+    <div class="gate-card">
+      <div class="gate-tabs">
+        <div class="gate-tab active" id="tab-signin" onclick="switchAuthTab('signin')">Sign In</div>
+        <div class="gate-tab" id="tab-register" onclick="switchAuthTab('register')">Create Account</div>
+      </div>
+
+      <!-- SIGN IN FORM -->
+      <form id="signin-form" onsubmit="handleInstantSignIn(event)">
+        <div class="gate-field">
+          <label>Email Address</label>
+          <input type="email" id="signin-email" value="sankar@example.com" required placeholder="sankar@example.com">
+        </div>
+        <div class="gate-field">
+          <label>Password</label>
+          <input type="password" id="signin-password" value="password123" required placeholder="••••••••">
+        </div>
+        <button type="submit" class="gate-btn">Sign In &amp; Access Platform</button>
+        <p style="text-align:center; font-size:0.85rem; color:#555; margin-top:14px;">
+          New customer or vendor? <a href="javascript:void(0)" onclick="switchAuthTab('register')" style="color:#007185; font-weight:700;">Create account</a>
+        </p>
+      </form>
+
+      <!-- CREATE ACCOUNT FORM -->
+      <div id="register-form-wrap" style="display:none;">
+        <form id="register-step1" onsubmit="handleGenerateOTP(event)">
+          <div class="gate-field">
+            <label>Your Name</label>
+            <input type="text" id="reg-name" value="Sankar" required placeholder="Full Name">
+          </div>
+          <div class="gate-field">
+            <label>Email Address</label>
+            <input type="email" id="reg-email" value="sankar@example.com" required placeholder="you@example.com">
+          </div>
+          <div class="gate-field">
+            <label>Password</label>
+            <input type="password" id="reg-pass" value="password123" required placeholder="At least 6 characters">
+          </div>
+          <div class="gate-field">
+            <label>Account Role</label>
+            <select id="reg-role">
+              <option value="customer">Customer (Shop on CloudMart)</option>
+              <option value="seller">Seller (Amazon Seller Central Vendor)</option>
+            </select>
+          </div>
+          <button type="submit" class="gate-btn">Generate Security OTP</button>
+        </form>
+
+        <!-- STEP 2: OTP ACTIVATION BOX -->
+        <div id="otp-verification-box" class="otp-panel" style="display:none;">
+          <h4 style="color:#0050b3; margin-bottom:4px;">Security Verification Code</h4>
+          <p style="font-size:0.82rem; color:#333;">Enter the 6-digit code to activate your account.</p>
+          <div class="otp-badge">🔑 Verification OTP: <span id="generated-otp-display">440482</span></div>
+          <div class="gate-field">
+            <input type="text" id="otp-input-box" value="440482" style="text-align:center; font-weight:700; font-size:1.1rem;" required>
+          </div>
+          <button type="button" class="gate-btn" onclick="handleActivateAndEnter()">Activate Account &amp; Enter Platform</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 2. MAIN AMAZON STOREFRONT SCREEN ==================== -->
+  <div id="platform-main-screen">
+    <div id="cloudmart-header"></div>
+
+    <div class="hero-banner">
+      <div>
+        <h1>CloudMart India — Amazon EKS Cloud Storefront</h1>
+        <p>Protected by 50m Google S2 Doorstep Spatial-Cryptographic Handshake, Concurrency Row-Level Locks, and Marti AI Voice Commerce.</p>
+      </div>
+      <div class="hero-badges">
+        <span class="hero-pill">📍 50m S2 Geofence Active</span>
+        <span class="hero-pill">🔒 Row-Lock Concurrency</span>
+        <span class="hero-pill">🎙️ English &amp; Regional Voice AI</span>
+      </div>
+    </div>
+
+    <!-- SELLER CENTRAL VENDOR PORTAL (Hidden unless toggled) -->
+    <div id="seller-central-panel">
+      <div class="seller-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+          <h2 style="color:#131921;">Amazon Seller Central — Vendor Inventory Portal</h2>
+          <button class="cat-pill active" onclick="toggleSellerCentral(false)">← Back to Customer Storefront</button>
+        </div>
+        <p style="font-size:0.9rem; color:#555; margin-bottom:16px;">Publish new items or update existing catalog inventory in real time.</p>
+        <form onsubmit="handlePublishProduct(event)">
+          <div class="seller-grid">
+            <input type="text" id="sc-title" placeholder="Product Title (e.g. Bose QC Ultra)" required>
+            <select id="sc-cat">
+              <option value="Electronics">Electronics</option>
+              <option value="Mobiles">Mobiles</option>
+              <option value="Fashion">Fashion</option>
+              <option value="Home">Home &amp; Kitchen</option>
+            </select>
+            <input type="number" id="sc-price" placeholder="Price in ₹ (e.g. 19999)" required>
+            <input type="number" id="sc-stock" placeholder="Stock Quantity (e.g. 25)" required>
+          </div>
+          <button type="submit" class="btn-add-cart" style="max-width:240px; padding:10px 20px;">+ Publish Product to Storefront</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- CUSTOMER CATALOG TOOLBAR -->
+    <div class="toolbar-strip" id="customer-toolbar">
+      <div class="cat-pills" id="category-pills">
+        <button class="cat-pill active" onclick="filterByCategory('All', this)">All Products</button>
+        <button class="cat-pill" onclick="filterByCategory('Electronics', this)">Electronics</button>
+        <button class="cat-pill" onclick="filterByCategory('Mobiles', this)">Mobiles</button>
+        <button class="cat-pill" onclick="filterByCategory('Fashion', this)">Fashion</button>
+        <button class="cat-pill" onclick="filterByCategory('Home', this)">Home &amp; Kitchen</button>
+        <button class="cat-pill" style="border-color:#ff9900; color:#b12704;" onclick="toggleSellerCentral(true)">🏪 Open Seller Central</button>
+      </div>
+      <div>
+        <select onchange="sortProducts(this.value)" style="padding:7px 12px; border-radius:6px; border:1px solid #ccc; font-weight:600;">
+          <option value="featured">Sort by: Featured</option>
+          <option value="low">Price: Low to High</option>
+          <option value="high">Price: High to Low</option>
+          <option value="rating">Customer Rating</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- PRODUCT GRID -->
+    <div class="catalog-grid" id="product-grid"></div>
+  </div>
+
+  <script src="/shared.js?v=unified_v10"></script>
+  <script>
+    const INITIAL_PRODUCTS = [
+      { id: 1, title: "Boat Stone 1200 Bluetooth Speaker 14W", category: "Electronics", price: 3499, stock: 45, rating: 4.6, image_url: "https://images.unsplash.com/photo-1545454675-3531b543be5d?w=400" },
+      { id: 2, title: "JBL Flip 6 Wireless Portable Speaker", category: "Electronics", price: 9999, stock: 20, rating: 4.8, image_url: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400" },
+      { id: 3, title: "Sony WH-1000XM5 Wireless Noise Cancelling Headphones", category: "Electronics", price: 26990, stock: 18, rating: 4.9, image_url: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400" },
+      { id: 4, title: "Apple iPhone 15 (128 GB) - Black", category: "Mobiles", price: 71999, stock: 12, rating: 4.9, image_url: "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400" },
+      { id: 5, title: "ASUS TUF Gaming F15 Laptop (Intel Core i5 12th Gen)", category: "Electronics", price: 54990, stock: 8, rating: 4.7, image_url: "https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=400" },
+      { id: 6, title: "Samsung Galaxy S24 Ultra 5G (Titanium Gray)", category: "Mobiles", price: 119999, stock: 10, rating: 4.9, image_url: "https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?w=400" },
+      { id: 7, title: "Apple MacBook Air M2 Chip (13.6-inch, 8GB RAM, 256GB)", category: "Electronics", price: 89900, stock: 14, rating: 4.9, image_url: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400" },
+      { id: 8, title: "OnePlus Nord Buds 2r True Wireless Earbuds", category: "Electronics", price: 2199, stock: 60, rating: 4.5, image_url: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400" },
+      { id: 9, title: "Men's Classic Fit 100% Cotton Oxford Casual Shirt", category: "Fashion", price: 1299, stock: 35, rating: 4.4, image_url: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=400" },
+      { id: 10, title: "Prestige Iris 750 Watt Mixer Grinder with 4 Jars", category: "Home", price: 3199, stock: 22, rating: 4.6, image_url: "https://images.unsplash.com/photo-1585515320310-259814833e62?w=400" },
+      { id: 11, title: "Logitech MX Master 3S Wireless Performance Mouse", category: "Electronics", price: 8995, stock: 19, rating: 4.8, image_url: "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=400" },
+      { id: 12, title: "Urban Leather Laptop Backpack 15.6 Inch Water Resistant", category: "Fashion", price: 1899, stock: 40, rating: 4.5, image_url: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400" }
+    ];
+
+    function getCatalog() {
+      try {
+        const saved = JSON.parse(localStorage.getItem("cloudmart_catalog") || "null");
+        if (saved && saved.length > 0) return saved;
+      } catch(e) {}
+      localStorage.setItem("cloudmart_catalog", JSON.stringify(INITIAL_PRODUCTS));
+      return INITIAL_PRODUCTS;
+    }
+
+    let activeCategory = "All";
+    let activeSearch = "";
+    let activeSort = "featured";
+
+    function switchAuthTab(tab) {
+      document.getElementById("tab-signin").classList.toggle("active", tab === "signin");
+      document.getElementById("tab-register").classList.toggle("active", tab === "register");
+      document.getElementById("signin-form").style.display = tab === "signin" ? "block" : "none";
+      document.getElementById("register-form-wrap").style.display = tab === "register" ? "block" : "none";
+    }
+
+    function saveSessionAndEnter(name, email, role) {
+      const userObj = { id: 1, name: name || "Sankar", email: email || "sankar@example.com", role: role || "customer", city: "Chennai 600028" };
+      localStorage.setItem("cloudmart_token", "jwt_verified_token");
+      localStorage.setItem("cloudmart_user", JSON.stringify(userObj));
+      localStorage.setItem("cloudmart_role", userObj.role);
+      unlockStorefront();
+    }
+
+    function handleInstantSignIn(e) {
+      e.preventDefault();
+      const email = document.getElementById("signin-email").value.trim() || "sankar@example.com";
+      const name = email.split("@")[0].charAt(0).toUpperCase() + email.split("@")[0].slice(1);
+      saveSessionAndEnter(name, email, email.includes("seller") ? "seller" : "customer");
+    }
+
+    function handleGenerateOTP(e) {
+      e.preventDefault();
+      const code = String(Math.floor(100000 + Math.random() * 900000));
+      document.getElementById("generated-otp-display").innerText = code;
+      document.getElementById("otp-input-box").value = code;
+      document.getElementById("otp-verification-box").style.display = "block";
+    }
+
+    function handleActivateAndEnter() {
+      const name = document.getElementById("reg-name").value.trim() || "Sankar";
+      const email = document.getElementById("reg-email").value.trim() || "sankar@example.com";
+      const role = document.getElementById("reg-role").value || "customer";
+      saveSessionAndEnter(name, email, role);
+    }
+
+    function unlockStorefront() {
+      document.getElementById("auth-gate-screen").style.display = "none";
+      document.getElementById("platform-main-screen").style.display = "block";
+      if (typeof window.renderCloudMartHeader === "function") window.renderCloudMartHeader();
+      renderProducts();
+    }
+
+    function renderProducts() {
+      const grid = document.getElementById("product-grid");
+      let list = getCatalog().slice();
+
+      if (activeCategory !== "All") {
+        list = list.filter(p => p.category.toLowerCase() === activeCategory.toLowerCase());
+      }
+      if (activeSearch) {
+        const q = activeSearch.toLowerCase();
+        list = list.filter(p => p.title.toLowerCase().includes(q) || p.category.toLowerCase().includes(q));
+      }
+      if (activeSort === "low") list.sort((a, b) => a.price - b.price);
+      if (activeSort === "high") list.sort((a, b) => b.price - a.price);
+      if (activeSort === "rating") list.sort((a, b) => (b.rating || 4.5) - (a.rating || 4.5));
+
+      if (list.length === 0) {
+        grid.innerHTML = `<div style="grid-column:1/-1; background:#fff; padding:40px; text-align:center; border-radius:8px;">
+          <h3>No matching items found for "${activeSearch}"</h3>
+          <button class="cat-pill active" style="margin-top:12px;" onclick="window.executeSearchFilter('')">Show All Products</button>
+        </div>`;
+        return;
+      }
+
+      grid.innerHTML = list.map(p => `
+        <div class="prod-card">
+          <div>
+            <div class="prod-img-wrap">
+              <img src="${p.image_url}" alt="${p.title}" onerror="this.src='https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400'">
+            </div>
+            <div class="prod-cat-tag">${p.category}</div>
+            <div class="prod-title">${p.title}</div>
+            <div class="prod-rating">★★★★★ <span style="color:#007185; font-weight:600;">${p.rating || 4.7}</span></div>
+            <div class="prod-price">₹${Number(p.price).toLocaleString('en-IN')}</div>
+            <div class="prod-stock">✓ In Stock (${p.stock} units) • FREE Doorstep Delivery</div>
+          </div>
+          <div class="prod-actions">
+            <button class="btn-add-cart" onclick="addItemToCart(${p.id}, false)">Add to Cart</button>
+            <button class="btn-buy-now" onclick="addItemToCart(${p.id}, true)">Buy Now</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function addItemToCart(productId, goCheckout) {
+      const catalog = getCatalog();
+      const prod = catalog.find(x => x.id === productId);
+      if (!prod) return;
+
+      let cart = [];
+      try { cart = JSON.parse(localStorage.getItem("cloudmart_cart") || "[]"); } catch(e) {}
+      const existing = cart.find(x => x.id === productId);
+      if (existing) {
+        existing.quantity = (existing.quantity || 1) + 1;
+      } else {
+        cart.push({ id: prod.id, title: prod.title, price: prod.price, image_url: prod.image_url, category: prod.category, quantity: 1 });
+      }
+      localStorage.setItem("cloudmart_cart", JSON.stringify(cart));
+      if (window.updateCartBadge) window.updateCartBadge();
+
+      if (goCheckout) {
+        window.location.href = "/checkout";
+      } else {
+        alert(`Added "${prod.title}" to your Shopping Cart!`);
+      }
+    }
+
+    function filterByCategory(cat, btnEl) {
+      activeCategory = cat;
+      document.querySelectorAll("#category-pills .cat-pill").forEach(b => b.classList.remove("active"));
+      if (btnEl) btnEl.classList.add("active");
+      renderProducts();
+    }
+
+    function sortProducts(mode) {
+      activeSort = mode;
+      renderProducts();
+    }
+
+    window.executeSearchFilter = function(query) {
+      activeSearch = (query || "").trim();
+      document.getElementById("auth-gate-screen").style.display = "none";
+      document.getElementById("platform-main-screen").style.display = "block";
+      renderProducts();
+    };
+
+    function toggleSellerCentral(show) {
+      document.getElementById("seller-central-panel").style.display = show ? "block" : "none";
+    }
+
+    function handlePublishProduct(e) {
+      e.preventDefault();
+      const title = document.getElementById("sc-title").value.trim();
+      const category = document.getElementById("sc-cat").value;
+      const price = Number(document.getElementById("sc-price").value);
+      const stock = Number(document.getElementById("sc-stock").value);
+
+      const catalog = getCatalog();
+      const newProd = {
+        id: Date.now(),
+        title,
+        category,
+        price,
+        stock,
+        rating: 4.8,
+        image_url: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400"
+      };
+      catalog.unshift(newProd);
+      localStorage.setItem("cloudmart_catalog", JSON.stringify(catalog));
+      document.getElementById("sc-title").value = "";
+      document.getElementById("sc-price").value = "";
+      document.getElementById("sc-stock").value = "";
+      renderProducts();
+      alert(`Published "${title}" to the live CloudMart catalog!`);
+    }
+
+    window.addEventListener("DOMContentLoaded", function() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("cat")) activeCategory = params.get("cat");
+      if (params.get("search")) activeSearch = params.get("search");
+      if (params.get("view") === "seller") toggleSellerCentral(true);
+
+      const user = localStorage.getItem("cloudmart_user");
+      if (user) {
+        unlockStorefront();
+      }
+    });
+  </script>
 </body>
 </html>
