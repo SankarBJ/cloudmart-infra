@@ -787,6 +787,24 @@ def voice_search_endpoint():
         "products": filtered
     }), 200
 
+
+# --- Appendix A.6 & Report R1 Compatibility Aliases ---
+@app.route('/api/health', methods=['GET'])
+def api_health_alias():
+    return health()
+
+@app.route('/api/login', methods=['POST'])
+def api_login_alias():
+    return login()
+
+@app.route('/api/ai-chat', methods=['POST'])
+def api_ai_chat_alias():
+    return ai_chat()
+
+@app.route('/api/checkout', methods=['POST'])
+def api_checkout_alias():
+    return create_order()
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
